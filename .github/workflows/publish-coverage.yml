@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - 'README.md'
+      - 'resources/**'
 jobs:
   func-build:
     runs-on: ubuntu-latest
