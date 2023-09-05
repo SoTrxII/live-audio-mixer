@@ -5,7 +5,8 @@
 This project is a live audio mixer that allows the user to mix multiple audio sources in real time. The user can control the volume of each audio source and the volume of the output. The user can also mute any audio source and the output. The user can also swap audio sources.
 ## Usage
 
-There are tree commands available, all of which must be called using the gRPC API:- Start a new record with an ID
+There are tree commands available, all of which must be called using the gRPC API:
+- Start a new record with an ID
 - Stop recording by ID
 - Send new events to the mixer
 
