@@ -16,7 +16,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libasound2-dev
+          sudo apt-get install -y libasound2-dev alsa-utils
+          sudo /sbin/modprobe snd-aloop
       - run: go mod tidy
       - name: Execute tests
         run: make test
