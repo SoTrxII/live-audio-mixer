@@ -6,6 +6,7 @@ import (
 	"github.com/faiface/beep/speaker"
 	"github.com/stretchr/testify/assert"
 	test_utils "live-audio-mixer/test-utils"
+	"os"
 	"testing"
 	"time"
 )
@@ -88,6 +89,9 @@ func TestGetStream_Cmp(t *testing.T) {
 
 // This is a human test, hearing the actual file
 func TestGetStream_Listen(t *testing.T) {
+	if os.Getenv("GITHUB_ACTIONS") == "true" {
+		t.Skip("Skipping human test in GitHub Actions environment")
+	}
 	cases := setup(t)
 	for _, testCase := range cases {
 		t.Run(fmt.Sprintf("Testing link %s", testCase.link), func(t *testing.T) {

@@ -35,7 +35,7 @@ func GetSimilarity(a1, a2 [][2]float64) float64 {
 }
 
 // GetAllSamples Get all samples from a stream
-func GetSamples(t *testing.T, s beep.StreamSeekCloser, bufferSize int) [][2]float64 {
+func GetSamples(t *testing.T, s beep.Streamer, bufferSize int) [][2]float64 {
 	samples := make([][2]float64, bufferSize)
 	_, ok := s.Stream(samples[:])
 	if !ok {

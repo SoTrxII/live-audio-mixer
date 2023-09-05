@@ -2,7 +2,6 @@ package internal
 
 import (
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/speaker"
 	"github.com/faiface/beep/wav"
 	"github.com/stretchr/testify/assert"
 	disc_jockey "live-audio-mixer/internal/disc-jockey"
@@ -27,10 +26,7 @@ func TestLive_MixedTracks(t *testing.T) {
 
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	assert.NoError(t, err)
-
-	err = dj.Add("chicken", chicken, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
+	err := dj.Add("chicken", chicken, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
 	assert.NoError(t, err)
 	//speaker.Play(dj)
 	done := make(chan os.Signal, 1)
@@ -93,9 +89,6 @@ func TestLive_FromURLs(t *testing.T) {
 	dj := disc_jockey.NewDiscJockey()
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	assert.NoError(t, err)
-
 	h := stream_handler.NewHandler()
 
 	stream, format, err := h.GetStream("https://download.samplelib.com/mp3/sample-3s.mp3")

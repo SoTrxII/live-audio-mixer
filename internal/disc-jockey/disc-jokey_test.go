@@ -2,7 +2,6 @@ package disc_jockey
 
 import (
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/speaker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	test_utils "live-audio-mixer/test-utils"
@@ -22,20 +21,19 @@ func TestDiscJockey_EndCallback(t *testing.T) {
 	dj := NewDiscJockey()
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	assert.NoError(t, err)
 	quack := test_utils.OpenMp3Resource(t, test_utils.Quack)
 	quackFormat := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	done := make(chan bool, 1)
-	err = dj.Add("quack", quack, quackFormat, func() {
+	err := dj.Add("quack", quack, quackFormat, func() {
 		done <- true
 	})
 	assert.NoError(t, err)
-	speaker.Play(dj)
+	// Pull 5 seconds worth of samples. This is more than enough to trigger the callback
+	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
 	select {
-	case <-time.After(5 * time.Second):
-		assert.Fail(t, "callback not called")
 	case <-done:
+	default:
+		assert.Fail(t, "callback not called")
 	}
 }
 
@@ -44,19 +42,18 @@ func TestDiscJockey_SampleRateZero(t *testing.T) {
 	dj := NewDiscJockey()
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	assert.NoError(t, err)
 	quack := test_utils.OpenMp3Resource(t, test_utils.Quack)
 	done := make(chan bool, 1)
-	err = dj.Add("quack", quack, beep.Format{}, func() {
+	err := dj.Add("quack", quack, beep.Format{}, func() {
 		done <- true
 	})
 	assert.NoError(t, err)
-	speaker.Play(dj)
+	// Pull 5 seconds worth of samples. This is more than enough to trigger the callback
+	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
 	select {
-	case <-time.After(5 * time.Second):
-		assert.Fail(t, "callback not called")
 	case <-done:
+	default:
+		assert.Fail(t, "callback not called")
 	}
 }
 
