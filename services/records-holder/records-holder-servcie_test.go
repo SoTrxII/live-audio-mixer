@@ -14,7 +14,7 @@ func teardown(t *testing.T) {
 }
 func TestRecordsHolder_Record(t *testing.T) {
 	defer teardown(t)
-	rh := NewRecordsHolder()
+	rh := NewRecordsHolder(nil)
 	err := rh.Record("1")
 	assert.NoError(t, err)
 	err = rh.Record("2")

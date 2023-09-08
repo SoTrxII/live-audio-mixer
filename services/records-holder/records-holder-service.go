@@ -6,6 +6,7 @@ import (
 	stream_handler "live-audio-mixer/internal/stream-handler"
 	"live-audio-mixer/pkg/recorder"
 	pb "live-audio-mixer/proto"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -15,8 +16,12 @@ const (
 	dstName = "rec.wav"
 )
 
+type ObjectStorage interface {
+	Upload(path string, id string) error
+}
 type RecordsHolder struct {
 	records map[string]*Record
+	store   ObjectStorage
 }
 
 type Record struct {
@@ -25,9 +30,10 @@ type Record struct {
 	dst *os.File
 }
 
-func NewRecordsHolder() *RecordsHolder {
+func NewRecordsHolder(store ObjectStorage) *RecordsHolder {
 	return &RecordsHolder{
 		records: map[string]*Record{},
+		store:   store,
 	}
 }
 
@@ -35,8 +41,12 @@ func (rh *RecordsHolder) Record(id string) error {
 	if rh.hasRecord(id) {
 		return fmt.Errorf("record with id %s already exists", id)
 	}
-	dir := filepath.Join(baseDir, id)
-	err := os.MkdirAll(dir, os.ModePerm)
+	absPath, err := filepath.Abs(baseDir)
+	if err != nil {
+		return err
+	}
+	dir := filepath.Join(absPath, id)
+	err = os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -65,8 +75,19 @@ func (rh *RecordsHolder) Stop(id string) error {
 		return err
 	}
 	delete(rh.records, id)
+	// Optionally, upload the file to the object storage
+	if rh.store != nil {
+		recordPath := filepath.Join(record.dir, dstName)
+		err = rh.store.Upload(recordPath, fmt.Sprintf("%s.wav", id))
+		if err != nil {
+			return err
+		}
+		err = os.RemoveAll(record.dir)
+		if err != nil {
+			slog.Warn(fmt.Sprintf("[RecordsHolder] :: Error while removing record dir %s : %v", record.dir, err))
+		}
+	}
 	return nil
-	// TODO : Upload to object storage
 }
 
 func (rh *RecordsHolder) Update(event *pb.Event) error {

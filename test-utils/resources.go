@@ -1,9 +1,12 @@
 package test_utils
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/wav"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -30,7 +33,7 @@ const (
 	ResPath = "../resources/"
 )
 
-func getResAbsolutePath(t *testing.T, r Resource) string {
+func GetResAbsolutePath(t *testing.T, r Resource) string {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("Couldn't get current file path")
@@ -40,7 +43,7 @@ func getResAbsolutePath(t *testing.T, r Resource) string {
 }
 
 func OpenMp3Resource(t *testing.T, r Resource) beep.StreamSeekCloser {
-	f, err := os.Open(getResAbsolutePath(t, r))
+	f, err := os.Open(GetResAbsolutePath(t, r))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +55,7 @@ func OpenMp3Resource(t *testing.T, r Resource) beep.StreamSeekCloser {
 }
 
 func OpenWavResource(t *testing.T, r Resource) beep.StreamSeekCloser {
-	f, err := os.Open(getResAbsolutePath(t, r))
+	f, err := os.Open(GetResAbsolutePath(t, r))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,4 +64,26 @@ func OpenWavResource(t *testing.T, r Resource) beep.StreamSeekCloser {
 		t.Fatal(err)
 	}
 	return decoded
+}
+
+// Checksum returns the SHA-256 checksum of the specified file
+func GetChecksum(filename string) (string, error) {
+	// Open the file
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	// Create a new SHA-256 hasher
+	hasher := sha256.New()
+	// Copy the file contents to the hasher
+	_, err = io.Copy(hasher, file)
+	if err != nil {
+		return "", err
+	}
+	// Get the checksum as a byte slice
+	checksumBytes := hasher.Sum(nil)
+	// Convert the checksum to a hexadecimal string
+	checksum := hex.EncodeToString(checksumBytes)
+	return checksum, nil
 }

@@ -4,13 +4,24 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/dapr/go-sdk/client"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
+	object_storage "live-audio-mixer/internal/object-storage"
 	pb "live-audio-mixer/proto"
 	records_holder "live-audio-mixer/services/records-holder"
 	"log"
 	"log/slog"
 	"net"
+	"os"
+	"strconv"
+)
+
+const (
+	DEFAULT_DAPR_PORT  = 50001
+	DEFAULT_STORE_NAME = "object-store"
+	DEFAULT_STORE_B64  = true
 )
 
 var (
@@ -65,14 +76,46 @@ func (s *server) StreamEvents(stream pb.EventStream_StreamEventsServer) error {
 
 func main() {
 	flag.Parse()
+	daprPort := DEFAULT_DAPR_PORT
+	if envPort, err := strconv.ParseInt(os.Getenv("DAPR_GRPC_PORT"), 10, 32); err == nil && envPort != 0 {
+		daprPort = int(envPort)
+	}
+	slog.Info("[Main] :: Dapr port is " + strconv.Itoa(daprPort))
+
+	objStoreName := os.Getenv("OBJECT_STORE_NAME")
+	if objStoreName == "" {
+		objStoreName = DEFAULT_STORE_NAME
+	}
+	objStoreUseB64 := DEFAULT_STORE_B64
+	if useB64, err := strconv.ParseBool(os.Getenv("OBJECT_STORE_B64")); err == nil {
+		objStoreUseB64 = useB64
+	}
+
+	// Initialize Dapr and object storage
+	daprClient, err := makeDaprClient(daprPort, 100)
+	ctx := context.Background()
+	store := object_storage.NewObjectStorage(&ctx, daprClient, objStoreName, objStoreUseB64)
+
+	// Strat the gRPC Server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterEventStreamServer(s, &server{service: records_holder.NewRecordsHolder()})
+	pb.RegisterEventStreamServer(s, &server{service: records_holder.NewRecordsHolder(store)})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func makeDaprClient(port, maxRequestSizeMB int) (client.Client, error) {
+	var opts []grpc.CallOption
+	opts = append(opts, grpc.MaxCallRecvMsgSize(maxRequestSizeMB*1024*1024))
+	conn, err := grpc.Dial(net.JoinHostPort("127.0.0.1", fmt.Sprintf("%d", port)),
+		grpc.WithDefaultCallOptions(opts...), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	return client.NewClientWithConnection(conn), nil
 }
