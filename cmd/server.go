@@ -91,8 +91,13 @@ func main() {
 		objStoreUseB64 = useB64
 	}
 
+	daprMaxRqSize := 100
+	if size, err := strconv.ParseInt(os.Getenv("DAPR_MAX_REQUEST_SIZE_MB"), 10, 32); err == nil {
+		daprMaxRqSize = int(size)
+	}
+
 	// Initialize Dapr and object storage
-	daprClient, err := makeDaprClient(daprPort, 100)
+	daprClient, err := makeDaprClient(daprPort, daprMaxRqSize)
 	ctx := context.Background()
 	store := object_storage.NewObjectStorage(&ctx, daprClient, objStoreName, objStoreUseB64)
 
