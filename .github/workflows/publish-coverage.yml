@@ -22,8 +22,18 @@ jobs:
           sudo apt-get install -y libasound2-dev pulseaudio alsa-utils dbus-x11
           pulseaudio -D
       - run: go mod tidy
+      - name: Install Dapr CLI
+        uses: dapr/setup-dapr@v1
+        with:
+          version: '1.11.0'
+      - name: Initialize Dapr
+        shell: bash
+        run: |
+          dapr uninstall 
+          dapr init
+          dapr --version
       - name: Execute tests
-        run: make test
+        run: make test_with_dapr
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v3
         with:
