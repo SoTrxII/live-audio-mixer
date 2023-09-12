@@ -6,7 +6,7 @@ FROM golang:1.21-alpine as builder
 WORKDIR /app
 COPY . .
 # Build the app, strip it (LDFLAGS) and optimize it with UPX
-RUN apk add upx && \
+RUN apk add upx ffmpeg && \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/server -ldflags="-w -s" ./cmd/server.go && \
     upx --best --lzma ./bin/server
 
