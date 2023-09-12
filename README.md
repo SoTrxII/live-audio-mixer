@@ -1,4 +1,6 @@
 # Live audio Mixer
+![CI](https://github.com/SoTrxII/live-audio-mixer/actions/workflows/publish-coverage.yml/badge.svg)
+[![codecov](https://codecov.io/gh/SoTrxII/live-audio-mixer/graph/badge.svg?token=E1YZKGK9IT)](https://codecov.io/gh/SoTrxII/live-audio-mixer)
 
 ## Description
 
