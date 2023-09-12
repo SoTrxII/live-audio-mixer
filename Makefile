@@ -15,18 +15,18 @@ run:
 	go run cmd/server.go
 
 dapr_run:
-	dapr run --app-id=live-audio-mixer --app-port 50051  --resources-path ./dapr/components -- go run cmd/server.go
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051  --resources-path ./dapr/components -- go run cmd/server.go
 
 dapr:
-	dapr run --app-id=live-audio-mixer --app-port 50051 --dapr-grpc-port=50008  --resources-path ./dapr/components
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051 --dapr-grpc-port=50008  --resources-path ./dapr/components
 
 # Dapr without waiting on the server, used for testing
 dapr_test:
-	dapr run --app-id=live-audio-mixer --dapr-grpc-port=50008  --resources-path ./dapr/components
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --dapr-grpc-port=50008  --resources-path ./dapr/components
 
 # Launch all test with Dapr sidecar enabled
 test_with_dapr:
-	dapr run --app-id=live-audio-mixer  --resources-path ./dapr/components -- go test -v ./...
+	dapr run --app-id=live-audio-mixer  --resources-path ./dapr/components -- go test -v ./... -covermode=atomic -coverprofile=coverage.out
 
 container:
 	docker build -t live-audio-mixer:latest .
