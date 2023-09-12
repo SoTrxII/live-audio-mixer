@@ -44,7 +44,7 @@ func teardown(t *testing.T) {
 func TestUpload(t *testing.T) {
 	objStore := setup(t)
 	defer teardown(t)
-	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Quack), test_utils.Quack)
+	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack), test_utils.Mp3_Quack)
 	assert.NoError(t, err)
 }
 
@@ -55,13 +55,13 @@ func TestDownload(t *testing.T) {
 	dir, err := os.MkdirTemp("", "obj-store-test")
 	assert.NoError(t, err)
 	// Attempt to download a non-existing resource
-	destPath := filepath.Join(dir, test_utils.Quack)
-	err = objStore.Download(test_utils.Quack, destPath)
+	destPath := filepath.Join(dir, test_utils.Mp3_Quack)
+	err = objStore.Download(test_utils.Mp3_Quack, destPath)
 	assert.Error(t, err)
 
 	// Attempt to download an existing resource
-	copyToStorage(test_utils.GetResAbsolutePath(t, test_utils.Quack))
-	err = objStore.Download(test_utils.Quack, destPath)
+	copyToStorage(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack))
+	err = objStore.Download(test_utils.Mp3_Quack, destPath)
 	assert.NoError(t, err)
 	_, err = os.Stat(destPath)
 	assert.NoError(t, err)
@@ -71,45 +71,45 @@ func TestDelete(t *testing.T) {
 	objStore := setup(t)
 	defer teardown(t)
 	// Attempt to delete a non-existing resource
-	err := objStore.Delete(test_utils.Quack)
+	err := objStore.Delete(test_utils.Mp3_Quack)
 	assert.Error(t, err)
 
 	// Attempt to delete an existing resource
-	copyToStorage(test_utils.GetResAbsolutePath(t, test_utils.Quack))
-	err = objStore.Delete(test_utils.Quack)
+	copyToStorage(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack))
+	err = objStore.Delete(test_utils.Mp3_Quack)
 	assert.NoError(t, err)
-	_, err = os.Stat(filepath.Join(STORAGE_PATH, test_utils.Quack))
+	_, err = os.Stat(filepath.Join(STORAGE_PATH, test_utils.Mp3_Quack))
 	assert.True(t, os.IsNotExist(err))
 }
 
 func TestUploadAndDelete(t *testing.T) {
 	objStore := setup(t)
 	defer teardown(t)
-	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Quack), test_utils.Quack)
+	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack), test_utils.Mp3_Quack)
 	assert.NoError(t, err)
-	err = objStore.Delete(test_utils.Quack)
+	err = objStore.Delete(test_utils.Mp3_Quack)
 	assert.NoError(t, err)
-	_, err = os.Stat(filepath.Join(STORAGE_PATH, test_utils.Quack))
+	_, err = os.Stat(filepath.Join(STORAGE_PATH, test_utils.Mp3_Quack))
 	assert.True(t, os.IsNotExist(err))
 }
 
 func TestUploadAndDownload(t *testing.T) {
 	objStore := setup(t)
 	defer teardown(t)
-	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Quack), test_utils.Quack)
+	err := objStore.Upload(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack), test_utils.Mp3_Quack)
 	assert.NoError(t, err)
 	// Make a temp dir to receive files
 	dir, err := os.MkdirTemp("", "obj-store-test")
 	assert.NoError(t, err)
 	// Attempt to download an existing resource
-	destPath := filepath.Join(dir, test_utils.Quack)
-	err = objStore.Download(test_utils.Quack, destPath)
+	destPath := filepath.Join(dir, test_utils.Mp3_Quack)
+	err = objStore.Download(test_utils.Mp3_Quack, destPath)
 	assert.NoError(t, err)
 	_, err = os.Stat(destPath)
 	assert.NoError(t, err)
 
 	// Ensure both file contents are the same
-	srcSum, err := test_utils.GetChecksum(test_utils.GetResAbsolutePath(t, test_utils.Quack))
+	srcSum, err := test_utils.GetChecksum(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack))
 	assert.NoError(t, err)
 	dstSum, err := test_utils.GetChecksum(destPath)
 	assert.NoError(t, err)

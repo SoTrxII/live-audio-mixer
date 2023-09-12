@@ -6,6 +6,7 @@ import (
 	"github.com/faiface/beep/speaker"
 	"github.com/stretchr/testify/assert"
 	test_utils "live-audio-mixer/test-utils"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -16,22 +17,32 @@ func setup(t *testing.T) []getStreamCase {
 		{
 			link:       "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
 			compareFor: 5 * time.Second,
-			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Castle),
+			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Mp3_Castle),
+			mime:       "audio/mpeg",
 		},
 		{
 			link:       "https://download.samplelib.com/mp3/sample-3s.mp3",
 			compareFor: 3 * time.Second,
-			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Sample3s),
+			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Mp3_Sample3s),
+			mime:       "audio/mpeg",
 		},
-		/*{
+		{
+			link:       "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg",
+			compareFor: 5 * time.Second,
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_SampleOpus),
+			mime:       "audio/ogg",
+		},
+		{
 			link:       "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav",
 			compareFor: 20 * time.Second,
-			compareTo:  test_utils.OpenWavResource(t, test_utils.BabyElephant),
-		},{
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_BabyElephant),
+			mime:       "audio/x-wav",
+		}, {
 			link:       "https://freewavesamples.com/files/Ensoniq-ZR-76-08-Dope-92.wav",
 			compareFor: 2 * time.Second,
-			compareTo:  test_utils.OpenWavResource(t, test_utils.Ensoniq),
-		},*/
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
+			mime:       "audio/wav",
+		},
 	}
 }
 func TestGetStream(t *testing.T) {
@@ -47,6 +58,7 @@ func TestGetStream(t *testing.T) {
 		})
 	}
 
+	// Cloudlfare protected link
 	invalidLinks := []string{"https://file-examples.com/wp-content/storage/2017/11/file_example_OOG_1MG.ogg"}
 
 	for _, link := range invalidLinks {
@@ -62,6 +74,7 @@ type getStreamCase struct {
 	link       string
 	compareFor time.Duration
 	compareTo  beep.StreamSeekCloser
+	mime       string
 }
 
 // Retrieve a stream and compare the content to another one
@@ -87,6 +100,19 @@ func TestGetStream_Cmp(t *testing.T) {
 
 }
 
+func TestHandler_GetMimeType(t *testing.T) {
+	cases := setup(t)
+	for _, testCase := range cases {
+		t.Run(fmt.Sprintf("Testing link %s", testCase.link), func(t *testing.T) {
+			h := NewHandler()
+			res, err := http.Get(testCase.link)
+			assert.NoError(t, err)
+			mime := h.getMimeType(res)
+			assert.Equal(t, testCase.mime, mime)
+		})
+	}
+}
+
 // This is a human test, hearing the actual file
 func TestGetStream_Listen(t *testing.T) {
 	if os.Getenv("GITHUB_ACTIONS") == "true" {
@@ -108,5 +134,16 @@ func TestGetStream_Listen(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestHandler_GetStream_NotAnAudioFile(t *testing.T) {
+	h := NewHandler()
+	_, _, err := h.GetStream("https://www.google.com")
+	assert.Error(t, err)
+}
+
+func TestHandler_GetStream_InvalidLink(t *testing.T) {
+	h := NewHandler()
+	_, _, err := h.GetStream("fhdfhdfhhfd://garbage.com")
+	assert.Error(t, err)
 }

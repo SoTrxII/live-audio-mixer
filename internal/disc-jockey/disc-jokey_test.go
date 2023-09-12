@@ -21,7 +21,7 @@ func TestDiscJockey_EndCallback(t *testing.T) {
 	dj := NewDiscJockey()
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	quack := test_utils.OpenMp3Resource(t, test_utils.Quack)
+	quack := test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack)
 	quackFormat := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	done := make(chan bool, 1)
 	err := dj.Add("quack", quack, quackFormat, func() {
@@ -42,7 +42,7 @@ func TestDiscJockey_SampleRateZero(t *testing.T) {
 	dj := NewDiscJockey()
 	// And write them to a file
 	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	quack := test_utils.OpenMp3Resource(t, test_utils.Quack)
+	quack := test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack)
 	done := make(chan bool, 1)
 	err := dj.Add("quack", quack, beep.Format{}, func() {
 		done <- true

@@ -6,8 +6,11 @@ require (
 	github.com/dapr/go-sdk v1.8.0
 	github.com/deckarep/golang-set/v2 v2.3.1
 	github.com/faiface/beep v1.1.0
-	github.com/golang/mock v1.6.0
+	github.com/gabriel-vasile/mimetype v1.4.2
+	github.com/go-audio/audio v1.0.0
+	github.com/go-audio/wav v1.0.0
 	github.com/mjibson/go-dsp v0.0.0-20180508042940-11479a337f12
+	github.com/pion/opus v0.0.0-20230805182210-70baa277ae2f
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
 	google.golang.org/grpc v1.57.0
@@ -16,11 +19,15 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-audio/riff v1.0.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.0 // indirect
 	github.com/hajimehoshi/oto v0.7.1 // indirect
+	github.com/icza/bitio v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/mewkiz/flac v1.0.7 // indirect
+	github.com/mewkiz/pkg v0.0.0-20190919212034-518ade7978e2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	golang.org/x/exp v0.0.0-20190306152737-a1d7652674e8 // indirect

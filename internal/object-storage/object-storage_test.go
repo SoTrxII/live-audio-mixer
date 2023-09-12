@@ -12,7 +12,7 @@ import (
 // Check that the streamijng way to build the B64 signature is identical to the
 // non-streaming way
 func TestObjectStorage_readFileToB64(t *testing.T) {
-	path := path.Join(test_utils.GetResAbsolutePath(t, test_utils.Quack))
+	path := path.Join(test_utils.GetResAbsolutePath(t, test_utils.Mp3_Quack))
 	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)

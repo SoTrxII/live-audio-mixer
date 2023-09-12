@@ -76,7 +76,7 @@ func TestStartStop(t *testing.T) {
 	_, err := test.File.Seek(0, io.SeekStart)
 	assert.NoError(t, err)
 	candidate, _, err := wav.Decode(test.File)
-	original := test_utils.OpenWavResource(t, test_utils.Rec_StartStop)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_StartStop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 	assert.InDelta(t, 1, sim, 0.1)
 }
@@ -104,7 +104,7 @@ func TestNoLoop(t *testing.T) {
 	_, err := test.File.Seek(0, io.SeekStart)
 	assert.NoError(t, err)
 	candidate, _, err := wav.Decode(test.File)
-	original := test_utils.OpenWavResource(t, test_utils.Rec_NoLoop)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_NoLoop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 	assert.InDelta(t, 1, sim, 0.1)
 }
@@ -132,7 +132,7 @@ func TestLoop(t *testing.T) {
 	_, err := test.File.Seek(0, io.SeekStart)
 	assert.NoError(t, err)
 	candidate, _, err := wav.Decode(test.File)
-	original := test_utils.OpenWavResource(t, test_utils.Rec_Loop)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_Loop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 	assert.InDelta(t, 1, sim, 0.1)
 }
@@ -171,7 +171,7 @@ func TestMultiTrack(t *testing.T) {
 	_, err := test.File.Seek(0, io.SeekStart)
 	assert.NoError(t, err)
 	candidate, _, err := wav.Decode(test.File)
-	original := test_utils.OpenWavResource(t, test_utils.Rec_MultiTracks)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_MultiTracks)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 	assert.InDelta(t, 1, sim, 0.1)
 }

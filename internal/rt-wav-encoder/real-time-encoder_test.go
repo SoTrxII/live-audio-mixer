@@ -38,9 +38,9 @@ func setup(t *testing.T) testAssets {
 		log.Fatal(err)
 	}
 	return testAssets{
-		Bg:      test_utils.OpenMp3Resource(t, test_utils.BgMusic),
-		Quack:   test_utils.OpenMp3Resource(t, test_utils.Quack),
-		Chicken: test_utils.OpenMp3Resource(t, test_utils.Chicken),
+		Bg:      test_utils.OpenMp3Resource(t, test_utils.Mp3_BgMusic),
+		Quack:   test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack),
+		Chicken: test_utils.OpenMp3Resource(t, test_utils.Mp3_Chicken),
 		Target:  fMix,
 		Dir:     dir,
 	}

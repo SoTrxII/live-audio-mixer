@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"github.com/faiface/beep"
+	"github.com/faiface/beep/flac"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/wav"
 	"io"
@@ -16,18 +17,19 @@ import (
 type Resource string
 
 const (
-	BgMusic         Resource = "Sappheiros_Falling.mp3"
-	Quack                    = "quack.mp3"
-	Chicken                  = "chicken_song.mp3"
-	Castle                   = "barovian-castle.mp3"
-	Sample3s                 = "sample-3s.mp3"
-	BabyElephant             = "baby-elephant.wav"
-	Ensoniq                  = "ensoniq.wav"
-	Rec_NoLoop               = "./recorder/no-loop.wav"
-	Rec_Loop                 = "./recorder/loop.wav"
-	Rec_StartStop            = "./recorder/start-stop.wav"
-	Rec_MultiTracks          = "./recorder/multi-tracks.wav"
-	Mix1                     = "./mixed/mix1.wav"
+	Mp3_BgMusic         Resource = "Sappheiros_Falling.mp3"
+	Mp3_Quack                    = "quack.mp3"
+	Mp3_Chicken                  = "chicken_song.mp3"
+	Mp3_Castle                   = "barovian-castle.mp3"
+	Mp3_Sample3s                 = "sample-3s.mp3"
+	Flac_SampleOpus              = "sample-opus.flac"
+	Flac_BabyElephant            = "baby-elephant-stereo.flac"
+	Flac_Ensoniq                 = "ensoniq.flac"
+	Wav_Rec_NoLoop               = "./recorder/no-loop.wav"
+	Wav_Rec_Loop                 = "./recorder/loop.wav"
+	Wav_Rec_StartStop            = "./recorder/start-stop.wav"
+	Wav_Rec_MultiTracks          = "./recorder/multi-tracks.wav"
+	Wav_Mix1                     = "./mixed/mix1.wav"
 )
 const (
 	ResPath = "../resources/"
@@ -60,6 +62,18 @@ func OpenWavResource(t *testing.T, r Resource) beep.StreamSeekCloser {
 		t.Fatal(err)
 	}
 	decoded, _, err := wav.Decode(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return decoded
+}
+
+func OpenFlacResource(t *testing.T, r Resource) beep.StreamSeekCloser {
+	f, err := os.Open(GetResAbsolutePath(t, r))
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, _, err := flac.Decode(f)
 	if err != nil {
 		t.Fatal(err)
 	}

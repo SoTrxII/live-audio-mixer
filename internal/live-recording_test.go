@@ -18,9 +18,9 @@ import (
 
 func TestLive_MixedTracks(t *testing.T) {
 	dj := disc_jockey.NewDiscJockey()
-	chicken := test_utils.OpenMp3Resource(t, test_utils.Chicken)
-	bg := test_utils.OpenMp3Resource(t, test_utils.BgMusic)
-	quack := test_utils.OpenMp3Resource(t, test_utils.Quack)
+	chicken := test_utils.OpenMp3Resource(t, test_utils.Mp3_Chicken)
+	bg := test_utils.OpenMp3Resource(t, test_utils.Mp3_BgMusic)
+	quack := test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack)
 	defer chicken.Close()
 	defer bg.Close()
 
@@ -61,7 +61,7 @@ func TestLive_MixedTracks(t *testing.T) {
 
 	dj.CloseAll()
 	testFile.Close()
-	original := test_utils.OpenWavResource(t, test_utils.Mix1)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Mix1)
 	defer original.Close()
 	originalSamples := test_utils.GetAllSamples(t, original)
 
@@ -127,7 +127,7 @@ func TestLive_FromURLs(t *testing.T) {
 
 	dj.CloseAll()
 	testFile.Close()
-	/*original := test_utils.OpenWavResource(t, test_utils.Mix1)
+	/*original := test_utils.OpenWavResource(t, test_utils.Wav_Mix1)
 	defer original.Close()
 	originalSamples := getSamples(t, original)
 
