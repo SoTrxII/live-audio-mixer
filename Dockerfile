@@ -16,7 +16,7 @@ RUN apk add upx ffmpeg && \
 FROM alpine as release
 # The runtime user, having no home dir nor password
 RUN adduser -HD -s /bin/ash appuser
-
+RUN apk add ffmpeg alsa-utils alsa-ucm-conf
 WORKDIR /app
 # Copy the built app, only allowing our app user to execute it
 COPY --from=builder --chmod=0500 --chown=appuser:appuser  /app/bin/server ./

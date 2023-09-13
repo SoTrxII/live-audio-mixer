@@ -30,3 +30,6 @@ test_with_dapr:
 
 container:
 	docker build -t live-audio-mixer:latest .
+
+container_run: container
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051  --resources-path ./dapr/components -- docker run -p 50051:50051 live-audio-mixer:latest
