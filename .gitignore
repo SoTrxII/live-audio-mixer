@@ -24,3 +24,4 @@ rec
 # IntelliJ IDEA
 .idea
 resources/storage
+.dapr
