@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"google.golang.org/grpc"
@@ -19,13 +18,11 @@ import (
 )
 
 const (
-	DEFAULT_DAPR_PORT  = 50001
-	DEFAULT_STORE_NAME = "object-store"
-	DEFAULT_STORE_B64  = true
-)
-
-var (
-	port = flag.Int("port", 50051, "The server port")
+	DEFAULT_PORT              = 50101
+	DEFAULT_DAPR_PORT         = 50001
+	DEFAULT_STORE_NAME        = "object-store"
+	DEFAULT_STORE_B64         = true
+	DEFAULT_DAPR_REQUEST_SIZE = 100
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -75,34 +72,16 @@ func (s *server) StreamEvents(stream pb.EventStream_StreamEventsServer) error {
 }
 
 func main() {
-	flag.Parse()
-	daprPort := DEFAULT_DAPR_PORT
-	if envPort, err := strconv.ParseInt(os.Getenv("DAPR_GRPC_PORT"), 10, 32); err == nil && envPort != 0 {
-		daprPort = int(envPort)
-	}
-	slog.Info("[Main] :: Dapr port is " + strconv.Itoa(daprPort))
-
-	objStoreName := os.Getenv("OBJECT_STORE_NAME")
-	if objStoreName == "" {
-		objStoreName = DEFAULT_STORE_NAME
-	}
-	objStoreUseB64 := DEFAULT_STORE_B64
-	if useB64, err := strconv.ParseBool(os.Getenv("OBJECT_STORE_B64")); err == nil {
-		objStoreUseB64 = useB64
-	}
-
-	daprMaxRqSize := 100
-	if size, err := strconv.ParseInt(os.Getenv("DAPR_MAX_REQUEST_SIZE_MB"), 10, 32); err == nil {
-		daprMaxRqSize = int(size)
-	}
+	pEnv := parseEnv()
+	slog.Info("[Main] :: Dapr port is " + strconv.Itoa(pEnv.daprGrpcPort))
 
 	// Initialize Dapr and object storage
-	daprClient, err := makeDaprClient(daprPort, daprMaxRqSize)
+	daprClient, err := makeDaprClient(pEnv.daprGrpcPort, pEnv.daprMaxRequestSizeMB)
 	ctx := context.Background()
-	store := object_storage.NewObjectStorage(&ctx, daprClient, objStoreName, objStoreUseB64)
+	store := object_storage.NewObjectStorage(&ctx, daprClient, pEnv.daprCpnObject, pEnv.daprCpnObjectB64)
 
 	// Strat the gRPC Server
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", pEnv.serverPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -112,6 +91,44 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+type env struct {
+	// Port to connect to Dapr sidecar
+	daprGrpcPort int
+	// Port the app is listening on
+	serverPort           int
+	daprMaxRequestSizeMB int
+	// Dapr components ids
+	daprCpnObject    string
+	daprCpnObjectB64 bool
+}
+
+func parseEnv() *env {
+	pEnv := env{
+		serverPort:           DEFAULT_PORT,
+		daprMaxRequestSizeMB: DEFAULT_DAPR_REQUEST_SIZE,
+		daprGrpcPort:         DEFAULT_DAPR_PORT,
+		daprCpnObject:        DEFAULT_STORE_NAME,
+		daprCpnObjectB64:     DEFAULT_STORE_B64,
+	}
+
+	if envPort, err := strconv.ParseInt(os.Getenv("DAPR_GRPC_PORT"), 10, 32); err == nil && envPort != 0 {
+		pEnv.daprGrpcPort = int(envPort)
+	}
+	if envPort, err := strconv.ParseInt(os.Getenv("SERVER_PORT"), 10, 32); err == nil && envPort != 0 {
+		pEnv.serverPort = int(envPort)
+	}
+	if envPort, err := strconv.ParseInt(os.Getenv("DAPR_MAX_REQUEST_SIZE_MB"), 10, 32); err == nil {
+		pEnv.daprMaxRequestSizeMB = int(envPort)
+	}
+	if id, isDefined := os.LookupEnv("OBJECT_STORE_NAME"); isDefined && id != "" {
+		pEnv.daprCpnObject = id
+	}
+	if b64, err := strconv.ParseBool(os.Getenv("OBJECT_STORE_B64")); err == nil {
+		pEnv.daprCpnObjectB64 = b64
+	}
+	return &pEnv
 }
 
 func makeDaprClient(port, maxRequestSizeMB int) (client.Client, error) {
