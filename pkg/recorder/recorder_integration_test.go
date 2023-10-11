@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"github.com/faiface/beep/wav"
 	"github.com/stretchr/testify/assert"
-	"io"
-	rt_wav_encoder "live-audio-mixer/internal/rt-wav-encoder"
+	rt_encoder "live-audio-mixer/internal/rt-encoder"
 	stream_handler "live-audio-mixer/internal/stream-handler"
 	pb "live-audio-mixer/proto"
 	test_utils "live-audio-mixer/test-utils"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -28,22 +28,23 @@ type testSetup struct {
 func setup(t *testing.T) *testSetup {
 	path, err := os.MkdirTemp("", "test-recorder")
 	assert.NoError(t, err)
-	fLoc := path + "/rec.wav"
+	fLoc := path + "/rec.ogg"
 	fmt.Println(fLoc)
 	file, err := os.Create(fLoc)
 	assert.NoError(t, err)
 	return &testSetup{
-		Rec:  NewRecorder(stream_handler.NewHandler(), rt_wav_encoder.Encode),
+		Rec:  NewRecorder(stream_handler.NewHandler(), rt_encoder.FFEncode),
 		Dir:  path,
 		File: file,
 		destroy: func(t *testing.T) {
 			err := file.Close()
 			if err != nil {
-				t.Fatal(err)
+				fmt.Println("Warn :: Could not remove file")
 			}
 			err = os.RemoveAll(path)
 			if err != nil {
-				t.Fatal(err)
+				fmt.Println("Warn :: Could not remove tmpdir")
+
 			}
 		},
 	}
@@ -73,11 +74,21 @@ func TestStartStop(t *testing.T) {
 	case err := <-errCh:
 		assert.NoError(t, err)
 	}
-	_, err := test.File.Seek(0, io.SeekStart)
+
+	// To be able to compare the file, we must encode the ogg file to wav
+	wavPath := filepath.Join(test.Dir, "rec.wav")
+	err := test_utils.ToWav(test.File.Name(), wavPath)
 	assert.NoError(t, err)
-	candidate, _, err := wav.Decode(test.File)
+
+	// Then we can test both files
+	wavFile, err := os.Open(wavPath)
+	defer wavFile.Close()
+	assert.NoError(t, err)
+	candidate, _, err := wav.Decode(wavFile)
 	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_StartStop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
+
+	// We can't expect 100% similarity, because the encoder is not lossless
 	assert.InDelta(t, 1, sim, 0.1)
 }
 
@@ -101,11 +112,20 @@ func TestNoLoop(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	_, err := test.File.Seek(0, io.SeekStart)
+	// To be able to compare the file, we must encode the ogg file to wav
+	wavPath := filepath.Join(test.Dir, "rec.wav")
+	err := test_utils.ToWav(test.File.Name(), wavPath)
 	assert.NoError(t, err)
-	candidate, _, err := wav.Decode(test.File)
+
+	// Then we can test both files
+	wavFile, err := os.Open(wavPath)
+	defer wavFile.Close()
+	assert.NoError(t, err)
+	candidate, _, err := wav.Decode(wavFile)
 	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_NoLoop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
+
+	// We can't expect 100% similarity, because the encoder is not lossless
 	assert.InDelta(t, 1, sim, 0.1)
 }
 
@@ -129,11 +149,20 @@ func TestLoop(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	_, err := test.File.Seek(0, io.SeekStart)
+	// To be able to compare the file, we must encode the ogg file to wav
+	wavPath := filepath.Join(test.Dir, "rec.wav")
+	err := test_utils.ToWav(test.File.Name(), wavPath)
 	assert.NoError(t, err)
-	candidate, _, err := wav.Decode(test.File)
+
+	// Then we can test both files
+	wavFile, err := os.Open(wavPath)
+	defer wavFile.Close()
+	assert.NoError(t, err)
+	candidate, _, err := wav.Decode(wavFile)
 	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_Loop)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
+
+	// We can't expect 100% similarity, because the encoder is not lossless
 	assert.InDelta(t, 1, sim, 0.1)
 }
 
@@ -168,10 +197,19 @@ func TestMultiTrack(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	_, err := test.File.Seek(0, io.SeekStart)
+	// To be able to compare the file, we must encode the ogg file to wav
+	wavPath := filepath.Join(test.Dir, "rec.wav")
+	err := test_utils.ToWav(test.File.Name(), wavPath)
 	assert.NoError(t, err)
-	candidate, _, err := wav.Decode(test.File)
+
+	// Then we can test both files
+	wavFile, err := os.Open(wavPath)
+	defer wavFile.Close()
+	assert.NoError(t, err)
+	candidate, _, err := wav.Decode(wavFile)
 	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_MultiTracks)
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
+
+	// We can't expect 100% similarity, because the encoder is not lossless
 	assert.InDelta(t, 1, sim, 0.1)
 }

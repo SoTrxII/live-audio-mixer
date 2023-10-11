@@ -1,14 +1,15 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/wav"
 	"github.com/stretchr/testify/assert"
 	disc_jockey "live-audio-mixer/internal/disc-jockey"
-	rt_wav_encoder "live-audio-mixer/internal/rt-wav-encoder"
-	stream_handler "live-audio-mixer/internal/stream-handler"
+	"live-audio-mixer/internal/rt-encoder"
 	test_utils "live-audio-mixer/test-utils"
 	"os"
+	"path/filepath"
 	"syscall"
 	"testing"
 	"time"
@@ -49,32 +50,40 @@ func TestLive_MixedTracks(t *testing.T) {
 		}
 	}(done)
 
-	const testFileName = "mix-candidate.wav"
-	testFile, err := os.Create(testFileName)
+	tmpDir, err := os.MkdirTemp("", "lam-live-recording")
+	fmt.Println("Temp dir is : " + tmpDir)
+	assert.NoError(t, err)
+	const testFileName = "mix-candidate"
+	oggFile := filepath.Join(tmpDir, testFileName+".ogg")
+	wavFile := filepath.Join(tmpDir, testFileName+".wav")
+	testFile, err := os.Create(oggFile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = rt_wav_encoder.Encode(testFile, dj, format, done)
+	err = rt_encoder.FFEncode(testFile, dj, format, done)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	dj.CloseAll()
 	testFile.Close()
+	err = test_utils.ToWav(oggFile, wavFile)
+
+	assert.NoError(t, err)
+
 	original := test_utils.OpenWavResource(t, test_utils.Wav_Mix1)
 	defer original.Close()
 	originalSamples := test_utils.GetAllSamples(t, original)
 
-	f, err := os.Open(testFileName)
-	if err != nil {
-		t.Fatal(err)
-	}
+	f, err := os.Open(wavFile)
+	assert.NoError(t, err)
+
 	candidate, _, err := wav.Decode(f)
 	defer func() {
 		candidate.Close()
-		err := os.Remove(testFileName)
+		err := os.RemoveAll(tmpDir)
 		if err != nil {
-			t.Fatal(err)
+			fmt.Println("Warn :: Could not remove temp dir: ", err)
 		}
 	}()
 	if err != nil {
@@ -83,71 +92,4 @@ func TestLive_MixedTracks(t *testing.T) {
 	candidatesSamples := test_utils.GetAllSamples(t, candidate)
 	sim := test_utils.GetSimilarity(originalSamples, candidatesSamples)
 	assert.InDelta(t, 1, sim, 0.1)
-}
-
-func TestLive_FromURLs(t *testing.T) {
-	dj := disc_jockey.NewDiscJockey()
-	// And write them to a file
-	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-	h := stream_handler.NewHandler()
-
-	stream, format, err := h.GetStream("https://download.samplelib.com/mp3/sample-3s.mp3")
-	err = dj.Add("chicken", stream, format, nil)
-	assert.NoError(t, err)
-	//speaker.Play(dj)
-	done := make(chan os.Signal, 1)
-
-	go func(done chan os.Signal) {
-		/*select {
-		case <-time.After(5 * time.Second):
-			err = dj.Remove("chicken")
-			assert.NoError(t, err)
-			err = dj.Add("bg", bg, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
-			assert.NoError(t, err)
-			err = dj.Add("quack", quack, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
-			assert.NoError(t, err)
-
-		}*/
-
-		select {
-		case <-time.After(5 * time.Second):
-			done <- syscall.SIGINT
-		}
-	}(done)
-
-	const testFileName = "mix-candidate.wav"
-	testFile, err := os.Create(testFileName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = rt_wav_encoder.Encode(testFile, dj, format, done)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	dj.CloseAll()
-	testFile.Close()
-	/*original := test_utils.OpenWavResource(t, test_utils.Wav_Mix1)
-	defer original.Close()
-	originalSamples := getSamples(t, original)
-
-	f, err := os.Open(testFileName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	candidate, _, err := wav.Decode(f)
-	defer func() {
-		candidate.Close()
-		err := os.Remove(testFileName)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
-	if err != nil {
-		t.Fatal(err)
-	}
-	candidatesSamples := getSamples(t, candidate)
-	sim := test_utils.GetSimilarity(originalSamples, candidatesSamples)
-	assert.InDelta(t, 1, sim, 0.1)*/
-
 }

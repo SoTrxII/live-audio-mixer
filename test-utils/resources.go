@@ -3,14 +3,17 @@ package test_utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/flac"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/wav"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -79,6 +82,17 @@ func OpenFlacResource(t *testing.T, r Resource) beep.StreamSeekCloser {
 		t.Fatal(err)
 	}
 	return decoded
+}
+
+func ToWav(src, dst string) error {
+	cmdLine := fmt.Sprintf("-i %s -y -acodec pcm_s16le -ac 2 -f wav %s", src, dst)
+	cmd := exec.Command("ffmpeg", strings.Split(cmdLine, " ")...)
+	cmd.Stderr = os.Stderr
+	_, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 // Checksum returns the SHA-256 checksum of the specified file

@@ -21,6 +21,6 @@ spec:
     - name: decodeBase64
       value: true
     - name: accessKey
-      value: "GiJdOQ8uWFT5oM7UrxWg"
+      value: "minioadmin"
     - name: secretKey
-      value: "5eOI4DRBeCvI3m2ycdDQPVyF8bvtOPRBnDORvRqs"
+      value: "minioadmin"

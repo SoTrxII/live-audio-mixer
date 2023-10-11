@@ -2,7 +2,7 @@ package records_holder
 
 import (
 	"fmt"
-	rt_wav_encoder "live-audio-mixer/internal/rt-wav-encoder"
+	rt_encoder "live-audio-mixer/internal/rt-encoder"
 	stream_handler "live-audio-mixer/internal/stream-handler"
 	"live-audio-mixer/pkg/recorder"
 	pb "live-audio-mixer/proto"
@@ -56,7 +56,7 @@ func (rh *RecordsHolder) Record(id string) error {
 	}
 
 	rh.records[id] = &Record{
-		rec: recorder.NewRecorder(stream_handler.NewHandler(), rt_wav_encoder.Encode),
+		rec: recorder.NewRecorder(stream_handler.NewHandler(), rt_encoder.FFEncode),
 		dir: dir,
 		dst: dst,
 	}
@@ -78,7 +78,7 @@ func (rh *RecordsHolder) Stop(id string) error {
 	// Optionally, upload the file to the object storage
 	if rh.store != nil {
 		recordPath := filepath.Join(record.dir, dstName)
-		err = rh.store.Upload(recordPath, fmt.Sprintf("%s.wav", id))
+		err = rh.store.Upload(recordPath, fmt.Sprintf("%s.ogg", id))
 		if err != nil {
 			return err
 		}
