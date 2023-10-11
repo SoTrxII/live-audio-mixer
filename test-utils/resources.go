@@ -21,6 +21,7 @@ const (
 	Mp3_Quack                    = "quack.mp3"
 	Mp3_Chicken                  = "chicken_song.mp3"
 	Mp3_Castle                   = "barovian-castle.mp3"
+	Flac_mp3_Layer3              = "sample-mp3-layer3.flac"
 	Mp3_Sample3s                 = "sample-3s.mp3"
 	Flac_SampleOpus              = "sample-opus.flac"
 	Flac_BabyElephant            = "baby-elephant-stereo.flac"

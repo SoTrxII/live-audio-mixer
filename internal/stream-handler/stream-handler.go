@@ -36,24 +36,23 @@ func (h *Handler) GetStream(audioUrl string) (beep.StreamSeekCloser, beep.Format
 		slog.Warn(fmt.Sprintf("[Stream handler] :: Invalid content type: '%s' for audio with url %s. Aborting playback", contentType, audioUrl))
 		return nil, beep.Format{}, fmt.Errorf("invalid content type: '%s' for audio with url %s. Aborting playback", contentType, audioUrl)
 	}
-	switch contentType {
-	case "audio/mpeg":
+
+	if contentType == "audio/mpeg" {
 		decoder, format, err = mp3.Decode(resp.Body)
-		if err != nil {
-			wrappedErr := fmt.Errorf("while decoding mp3: %w", err)
-			return nil, beep.Format{}, wrappedErr
+		if err == nil {
+			return decoder, format, nil
 		}
-	default:
-		sc := NewStreamConverter(audioUrl)
-		format = beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
-		pipe, err := sc.GetOutput()
-		if err != nil {
-			return nil, beep.Format{}, err
-		}
-		go watchEncoder(audioUrl, sc)
-		return flac.Decode(pipe)
+		slog.Warn(fmt.Sprintf("while decoding mp3: %s. Using default decoder", err.Error()))
 	}
-	return decoder, format, nil
+
+	sc := NewStreamConverter(audioUrl)
+	format = beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+	pipe, err := sc.GetOutput()
+	if err != nil {
+		return nil, beep.Format{}, err
+	}
+	go watchEncoder(audioUrl, sc)
+	return flac.Decode(pipe)
 }
 
 func (h *Handler) getMimeType(res *http.Response) string {

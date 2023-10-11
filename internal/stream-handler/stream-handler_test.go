@@ -27,6 +27,12 @@ func setup(t *testing.T) []getStreamCase {
 			mime:       "audio/mpeg",
 		},
 		{
+			link:       "https://youtube.songbroker.pocot.fr/download/mp3/3cFvVYUxwoc-#87867",
+			compareFor: 10 * time.Second,
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_mp3_Layer3),
+			mime:       "audio/mpeg",
+		},
+		{
 			link:       "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg",
 			compareFor: 5 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_SampleOpus),
