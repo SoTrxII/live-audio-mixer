@@ -211,5 +211,6 @@ func TestMultiTrack(t *testing.T) {
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 
 	// We can't expect 100% similarity, because the encoder is not lossless
-	assert.InDelta(t, 1, sim, 0.1)
+	// This one also depend on the resampling
+	assert.InDelta(t, 1, sim, 0.2)
 }
