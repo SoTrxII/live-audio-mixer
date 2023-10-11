@@ -33,3 +33,8 @@ container:
 
 container_run: container
 	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051  --resources-path ./dapr/components -- docker run -p 50051:50051 live-audio-mixer:latest
+
+
+#Memo
+# Convert url to flac 48k
+#ffmpeg -i "<url>" -vn -ac 2 -ar 48000 -acodec flac -t 15 <name>.flac
