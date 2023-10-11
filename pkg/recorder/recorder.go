@@ -21,7 +21,7 @@ func NewRecorder(src StreamingSrc, to EncodeFn) *Recorder {
 func (r *Recorder) Start(to *os.File) chan error {
 	// Starts encoding asynchronously
 	go func(stop chan os.Signal, ack chan error) {
-		format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+		format := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 		ack <- r.sink.fn(to, r.dj, format, stop)
 	}(r.sink.stop, r.sink.ack)
 

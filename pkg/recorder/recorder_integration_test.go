@@ -37,7 +37,7 @@ func setup(t *testing.T) *testSetup {
 		Dir:  path,
 		File: file,
 		destroy: func(t *testing.T) {
-			err := file.Close()
+			/*err := file.Close()
 			if err != nil {
 				fmt.Println("Warn :: Could not remove file")
 			}
@@ -45,7 +45,7 @@ func setup(t *testing.T) *testSetup {
 			if err != nil {
 				fmt.Println("Warn :: Could not remove tmpdir")
 
-			}
+			}*/
 		},
 	}
 }

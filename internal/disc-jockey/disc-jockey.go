@@ -44,10 +44,10 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 
 	var target beep.Streamer = s
 	if format.SampleRate == beep.SampleRate(0) {
-		slog.Info(fmt.Sprintf("[Disc Jockey] :: Track %s has a sample rate of 0. Assuming 44100 and hoping for the best", id))
-	} else if format.SampleRate != beep.SampleRate(44100) {
-		slog.Info(fmt.Sprintf("[Disc Jockey] :: Resampling track %s from %d to 44100", id, format.SampleRate))
-		target = beep.Resample(3, format.SampleRate, beep.SampleRate(44100), s)
+		slog.Info(fmt.Sprintf("[Disc Jockey] :: Track %s has a sample rate of 0. Assuming 48000 and hoping for the best", id))
+	} else if format.SampleRate != beep.SampleRate(48000) {
+		slog.Info(fmt.Sprintf("[Disc Jockey] :: Resampling track %s from %d to 48000", id, format.SampleRate))
+		target = beep.Resample(3, format.SampleRate, beep.SampleRate(48000), s)
 	}
 
 	// Every time a song stops playing, it is removed from the track list

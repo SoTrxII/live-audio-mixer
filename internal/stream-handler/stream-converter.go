@@ -22,13 +22,13 @@ type NonSeekingReader struct {
 func NewStreamConverter(url string) *StreamConverter {
 	return &StreamConverter{
 		// Flac
-		cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-ac", "2", "-ar", "44100", "-acodec", "flac", "-f", "flac", "-"),
+		cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-ac", "2", "-ar", "48000", "-acodec", "flac", "-f", "flac", "-"),
 		// Wav (Non functional, reason unknown)
-		//cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "2", "-f", "wav", "-frames:v", "44100", "-"),
+		//cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-acodec", "pcm_s16le", "-ar", "48000", "-ac", "2", "-f", "wav", "-frames:v", "48000", "-"),
 		// Mp3 (Non functional, requires seeking)
-		//cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-ar", "44100", "-acodec", "mp3", "-f", "mp3", "-"),
+		//cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-ar", "48000", "-acodec", "mp3", "-f", "mp3", "-"),
 		// Raw (Produces cracks in sound, probably due to some incorrect rounding on my side)
-		//cmd: exec.Command("ffmpeg", "-i", url, "-acodec", "pcm_s16le", "-ar", "44100", "-ac", "2", "-f", "s16le", "-"),
+		//cmd: exec.Command("ffmpeg", "-i", url, "-acodec", "pcm_s16le", "-ar", "48000", "-ac", "2", "-f", "s16le", "-"),
 	}
 
 }

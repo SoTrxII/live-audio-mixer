@@ -46,7 +46,7 @@ func (h *Handler) GetStream(audioUrl string) (beep.StreamSeekCloser, beep.Format
 	}
 
 	sc := NewStreamConverter(audioUrl)
-	format = beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+	format = beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	pipe, err := sc.GetOutput()
 	if err != nil {
 		return nil, beep.Format{}, err

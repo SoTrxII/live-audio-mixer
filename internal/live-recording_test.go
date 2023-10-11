@@ -26,7 +26,7 @@ func TestLive_MixedTracks(t *testing.T) {
 	defer bg.Close()
 
 	// And write them to a file
-	format := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+	format := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	err := dj.Add("chicken", chicken, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
 	assert.NoError(t, err)
 	//speaker.Play(dj)

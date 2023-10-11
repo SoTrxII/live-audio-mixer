@@ -80,7 +80,7 @@ func Test_Static(t *testing.T) {
 	mixer.Add(as.Bg, as.Quack)
 
 	// And write them to a file
-	mixFormat := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+	mixFormat := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 
 	// As the mixed stream emits silence when no stream are playing
 	// the stream will not stop on its own
@@ -117,7 +117,7 @@ func Test_DynamicSwitch(t *testing.T) {
 	mixer.Add(as.Bg, as.Quack)
 
 	// And write them to a file
-	mixFormat := beep.Format{SampleRate: 44100, NumChannels: 2, Precision: 2}
+	mixFormat := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	// As the mixed stream emits silence when no stream are playing
 	// the stream will not stop on its own
 	// So we way for some time before stopping it manually

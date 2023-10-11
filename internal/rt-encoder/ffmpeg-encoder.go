@@ -24,7 +24,7 @@ func FFEncode(w io.WriteSeeker, s beep.Streamer, format beep.Format, signalCh ch
 		return errors.New("wav: unsupported precision, 1, 2 or 3 is supported")
 	}
 	pipeReader, pipeWriter := io.Pipe()
-	cmd := exec.Command("ffmpeg", "-re", "-f", "s16le", "-ar", "44100", "-ac", "2", "-i", "pipe:0", "-c:a", "libopus", "-f", "ogg", "pipe:1")
+	cmd := exec.Command("ffmpeg", "-re", "-f", "s16le", "-ar", "48000", "-ac", "2", "-i", "pipe:0", "-c:a", "libopus", "-f", "ogg", "pipe:1")
 	cmd.Stdin = pipeReader
 	cmd.Stdout = w
 	cmd.Stderr = os.Stderr
@@ -39,7 +39,7 @@ func FFEncode(w io.WriteSeeker, s beep.Streamer, format beep.Format, signalCh ch
 	}()*/
 
 	recordingDuration := 1 * time.Second // Recording duration of one second.
-	chunkSize := int(44100) * 1 * int(recordingDuration.Seconds())
+	chunkSize := int(48000) * 1 * int(recordingDuration.Seconds())
 	var (
 		bw      = pipeWriter
 		samples = make([][2]float64, chunkSize)
