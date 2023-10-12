@@ -7,6 +7,7 @@ import (
 	pb "live-audio-mixer/proto"
 	"log/slog"
 	"os"
+	"sync"
 )
 
 func NewRecorder(src StreamingSrc, to EncodeFn) *Recorder {
@@ -15,6 +16,7 @@ func NewRecorder(src StreamingSrc, to EncodeFn) *Recorder {
 		state: map[string]*pb.Event{},
 		src:   src,
 		sink:  Sink{fn: to, stop: make(chan os.Signal, 1), ack: make(chan error, 1)},
+		mu:    sync.Mutex{},
 	}
 }
 
@@ -29,10 +31,14 @@ func (r *Recorder) Start(to *os.File) chan error {
 }
 
 func (r *Recorder) Stop() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.sink.stop <- os.Interrupt
 }
 
 func (r *Recorder) Update(evt *pb.Event) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	var err error
 	r.state[evt.AssetUrl] = evt
 	switch evt.Type {

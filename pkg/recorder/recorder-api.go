@@ -6,6 +6,7 @@ import (
 	disc_jockey "live-audio-mixer/internal/disc-jockey"
 	pb "live-audio-mixer/proto"
 	"os"
+	"sync"
 )
 
 type Recorder struct {
@@ -13,6 +14,7 @@ type Recorder struct {
 	src   StreamingSrc
 	state map[string]*pb.Event
 	sink  Sink
+	mu    sync.Mutex
 }
 
 type EncodeFn func(w io.WriteSeeker, s beep.Streamer, format beep.Format, signalCh chan os.Signal) (err error)
