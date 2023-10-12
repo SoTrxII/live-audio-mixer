@@ -31,12 +31,6 @@ func FFEncode(w io.WriteSeeker, s beep.Streamer, format beep.Format, signalCh ch
 	if err := cmd.Start(); err != nil {
 		return err
 	}
-	/*defer func() {
-		err := cmd.Wait()
-		if err != nil {
-			fmt.Println("Error waiting for ffmpeg to finish:", err)
-		}
-	}()*/
 
 	recordingDuration := 1 * time.Second // Recording duration of one second.
 	chunkSize := int(48000) * 1 * int(recordingDuration.Seconds())
