@@ -13,7 +13,7 @@ import (
 
 const (
 	baseDir = "./rec/"
-	dstName = "rec.wav"
+	dstName = "rec.ogg"
 )
 
 type ObjectStorage interface {
