@@ -71,6 +71,26 @@ func TestDiscJockey_Remove(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestDiscJockey_SetPaused(t *testing.T) {
+	dj := NewDiscJockey()
+	mockStream := MockStreamer{}
+	mockStream.On("Close").Return(nil)
+	err := dj.Add("test", &mockStream, beep.Format{}, nil)
+	assert.NoError(t, err)
+	err = dj.SetPaused("test", true)
+	assert.NoError(t, err)
+	err = dj.SetPaused("test", false)
+	assert.NoError(t, err)
+	err = dj.SetPaused("test", false)
+	assert.NoError(t, err)
+	err = dj.Remove("test")
+	assert.NoError(t, err)
+	// If close wasn't called at this point it will panic
+	mockStream.AssertExpectations(t)
+	err = dj.SetPaused("test", true)
+	assert.Error(t, err)
+}
+
 type MockStreamer struct {
 	mock.Mock
 }

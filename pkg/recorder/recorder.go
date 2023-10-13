@@ -46,6 +46,12 @@ func (r *Recorder) Update(evt *pb.Event) {
 		err = r.addTrack(evt.AssetUrl)
 	case pb.EventType_STOP:
 		err = r.removeTrack(evt.AssetUrl)
+	case pb.EventType_PAUSE:
+		err = r.pauseTrack(evt.AssetUrl)
+	case pb.EventType_RESUME:
+		err = r.resumeTrack(evt.AssetUrl)
+	default:
+		slog.Warn(fmt.Sprintf("[Recorder] :: Unknown event type %v", evt.Type))
 	}
 	if err != nil {
 		slog.Error(fmt.Sprintf("[Recorder] :: Error while handling event %v : %v", evt, err))
@@ -85,4 +91,14 @@ func (r *Recorder) addTrack(url string) error {
 // Remove a track from the mixtable
 func (r *Recorder) removeTrack(url string) error {
 	return r.dj.Remove(url)
+}
+
+// Pause a track
+func (r *Recorder) pauseTrack(url string) error {
+	return r.dj.SetPaused(url, true)
+}
+
+// Resume a track
+func (r *Recorder) resumeTrack(url string) error {
+	return r.dj.SetPaused(url, false)
 }

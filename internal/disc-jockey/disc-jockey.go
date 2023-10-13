@@ -110,15 +110,19 @@ func (dj *DiscJockey) CloseAll() {
 	dj.trackList = map[string]*Track{}
 }
 
-// Pause a single track
-func (dj *DiscJockey) Pause(id string) error {
+// SetPaused a single track
+func (dj *DiscJockey) SetPaused(id string, paused bool) error {
 	dj.lock.Lock()
 	defer dj.lock.Unlock()
 	track, err := dj.getTrack(id)
 	if err != nil {
 		return err
 	}
-	track.Decorated.Streamer.(*beep.Ctrl).Paused = true
+
+	if track.Decorated.Streamer.(*beep.Ctrl).Paused == paused {
+		slog.Warn(fmt.Sprintf(`[Disc Jockey] :: Attempting to set track "%s" to state paused=%t, which it is alredy in`, id, paused))
+	}
+	track.Decorated.Streamer.(*beep.Ctrl).Paused = paused
 	return nil
 }
 

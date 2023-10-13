@@ -33,6 +33,7 @@ const (
 	Wav_Rec_Loop                 = "./recorder/loop.wav"
 	Wav_Rec_StartStop            = "./recorder/start-stop.wav"
 	Wav_Rec_MultiTracks          = "./recorder/multi-tracks.wav"
+	Wav_Rec_PauseResume          = "./recorder/pause-resume.wav"
 	Wav_Mix1                     = "./mixed/mix1.wav"
 )
 const (
