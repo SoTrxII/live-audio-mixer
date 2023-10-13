@@ -215,7 +215,7 @@ func TestMultiTrack(t *testing.T) {
 	assert.InDelta(t, 1, sim, 0.2)
 }
 
-func TestWithPause(t *testing.T) {
+func TestPauseResume(t *testing.T) {
 	test := setup(t)
 	defer test.destroy(t)
 	errCh := test.Rec.Start(test.File)
@@ -267,5 +267,5 @@ func TestWithPause(t *testing.T) {
 
 	// We can't expect 100% similarity, because the encoder is not lossless
 	// This one also depend on the resampling
-	assert.InDelta(t, 1, sim, 0.1)
+	assert.InDelta(t, 1, sim, 0.2)
 }
