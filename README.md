@@ -45,9 +45,11 @@ message Event {
 }
 ```
 
-There are currently two types of event:
+There are currently four types of event:
 - PLAY: adds a new audio source to the mixer
 - STOP: Removes an audio source from the Mixer
+- PAUSE: Pauses an audio source that is currently playing in the mixer
+- RESUME: Resumes an audio source that is currently paused in the mixer
 
 ### Example
 
