@@ -50,6 +50,9 @@ func (r *Recorder) Update(evt *pb.Event) {
 		err = r.pauseTrack(evt.AssetUrl)
 	case pb.EventType_RESUME:
 		err = r.resumeTrack(evt.AssetUrl)
+	// This type of event only toggles the loop flag currently, there is no processing required
+	case pb.EventType_OTHER:
+		slog.Info(fmt.Sprintf("[Recorder] :: Received OTHER event %v", evt))
 	default:
 		slog.Warn(fmt.Sprintf("[Recorder] :: Unknown event type %v", evt.Type))
 	}
