@@ -43,13 +43,15 @@ func (r *Recorder) Update(evt *pb.Event) {
 	r.state[evt.AssetUrl] = evt
 	switch evt.Type {
 	case pb.EventType_PLAY:
-		err = r.addTrack(evt.AssetUrl)
+		err = r.addTrack(evt.AssetUrl, evt.VolumeDeltaDb)
 	case pb.EventType_STOP:
 		err = r.removeTrack(evt.AssetUrl)
 	case pb.EventType_PAUSE:
 		err = r.pauseTrack(evt.AssetUrl)
 	case pb.EventType_RESUME:
 		err = r.resumeTrack(evt.AssetUrl)
+	case pb.EventType_VOLUME:
+		err = r.changeVolume(evt.AssetUrl, evt.VolumeDeltaDb)
 	// This type of event only toggles the loop flag currently, there is no processing required
 	case pb.EventType_OTHER:
 		slog.Info(fmt.Sprintf("[Recorder] :: Received OTHER event %v", evt))
@@ -64,7 +66,7 @@ func (r *Recorder) Update(evt *pb.Event) {
 func (r *Recorder) loop(url string) error {
 	lastEvt := r.state[url]
 	if lastEvt.Loop {
-		err := r.addTrack(url)
+		err := r.addTrack(url, lastEvt.VolumeDeltaDb)
 		if err != nil {
 			return err
 		}
@@ -73,18 +75,20 @@ func (r *Recorder) loop(url string) error {
 }
 
 // Add a track to the mixtable from its URL
-func (r *Recorder) addTrack(url string) error {
+func (r *Recorder) addTrack(url string, initVolume float64) error {
 	stream, format, err := r.src.GetStream(url)
 	if err != nil {
 		return err
 	}
-	err = r.dj.Add(url, stream, format, func() {
-		err := r.loop(url)
-		if err != nil {
-			slog.Error(fmt.Sprintf("[Recorder] :: Error while looping track %s : %v", url, err))
-		}
+	err = r.dj.Add(url, stream, format, disc_jockey.AddTrackOpt{
+		InitVolumeDb: initVolume,
+		OnEnd: func() {
+			err := r.loop(url)
+			if err != nil {
+				slog.Error(fmt.Sprintf("[Recorder] :: Error while looping track %s : %v", url, err))
+			}
+		},
 	})
-	//err = r.dj.Add(url, stream, format, nil)
 	if err != nil {
 		return err
 	}
@@ -104,4 +108,8 @@ func (r *Recorder) pauseTrack(url string) error {
 // Resume a track
 func (r *Recorder) resumeTrack(url string) error {
 	return r.dj.SetPaused(url, false)
+}
+
+func (r *Recorder) changeVolume(url string, volumeDeltaDb float64) error {
+	return r.dj.ChangeVolume(url, volumeDeltaDb)
 }

@@ -269,3 +269,51 @@ func TestPauseResume(t *testing.T) {
 	// This one also depend on the resampling
 	assert.InDelta(t, 1, sim, 0.2)
 }
+
+func TestVolume(t *testing.T) {
+	test := setup(t)
+	defer test.destroy(t)
+	errCh := test.Rec.Start(test.File)
+	go func() {
+		time.Sleep(1 * time.Second)
+		test.Rec.Update(&pb.Event{
+			Type:     pb.EventType_PLAY,
+			AssetUrl: "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
+			Loop:     false,
+		})
+		time.Sleep(5 * time.Second)
+
+		// Halve perceived volume
+		test.Rec.Update(&pb.Event{
+			Type:          pb.EventType_VOLUME,
+			AssetUrl:      "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
+			Loop:          true,
+			VolumeDeltaDb: -3,
+		})
+		time.Sleep(5 * time.Second)
+
+		// This should trigger the mute state
+		test.Rec.Update(&pb.Event{
+			Type:          pb.EventType_VOLUME,
+			AssetUrl:      "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
+			Loop:          true,
+			VolumeDeltaDb: -57,
+		})
+		time.Sleep(5 * time.Second)
+
+		// Back to normal
+		test.Rec.Update(&pb.Event{
+			Type:          pb.EventType_VOLUME,
+			AssetUrl:      "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
+			Loop:          true,
+			VolumeDeltaDb: 60,
+		})
+		time.Sleep(5 * time.Second)
+		test.Rec.Stop()
+	}()
+
+	select {
+	case err := <-errCh:
+		assert.NoError(t, err)
+	}
+}

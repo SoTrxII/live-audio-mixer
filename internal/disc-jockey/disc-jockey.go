@@ -11,20 +11,6 @@ import (
 // A collection of utilities taking a collection of streamseeker and handling control
 // related operations like looping, seeking, pausing...
 
-type Track struct {
-	// The original stream
-	Origin beep.StreamSeekCloser
-	// The actual played stream with all required controls
-	Decorated *effects.Volume
-}
-
-// DiscJockey is a mixer that can play multiple tracks at the same time
-type DiscJockey struct {
-	mixer     beep.Mixer
-	lock      sync.Mutex
-	trackList map[string]*Track
-}
-
 func NewDiscJockey() *DiscJockey {
 	return &DiscJockey{
 		mixer:     beep.Mixer{},
@@ -35,7 +21,7 @@ func NewDiscJockey() *DiscJockey {
 
 // Add a new track to the mixtable, the onEnd callback is called when the track is finished
 // A new track is played automatically
-func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format, onEnd func()) error {
+func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format, opt AddTrackOpt) error {
 
 	// abort if the track already exists
 	if _, err := dj.getTrack(id); err == nil {
@@ -56,8 +42,8 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 		if err != nil {
 			slog.Debug(fmt.Sprintf("[Disc Jockey] :: Error while removing track %s  in callback. Song has been stopped beforehand : %v", id, err))
 		}
-		if onEnd != nil {
-			onEnd()
+		if opt.OnEnd != nil {
+			opt.OnEnd()
 		}
 	})
 	track := &Track{
@@ -65,9 +51,10 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 		Decorated: &effects.Volume{
 			Streamer: &beep.Ctrl{Streamer: beep.Seq(target, afterPlayCb), Paused: false},
 			// Logarithmic base for volume control
-			Base: 2,
+			Base: 10,
 			// 0 means "not changed from the original stream"
-			Volume: 0,
+			// InitVolumeDb is in Db, so we need it back to plain log10, hence the /20
+			Volume: opt.InitVolumeDb / 20,
 			// A track can't be silent using logarithmic volume control
 			// so we use a flag instead
 			Silent: false,
@@ -123,6 +110,28 @@ func (dj *DiscJockey) SetPaused(id string, paused bool) error {
 		slog.Warn(fmt.Sprintf(`[Disc Jockey] :: Attempting to set track "%s" to state paused=%t, which it is alredy in`, id, paused))
 	}
 	track.Decorated.Streamer.(*beep.Ctrl).Paused = paused
+	return nil
+}
+
+func (dj *DiscJockey) ChangeVolume(id string, volumeDeltaDb float64) error {
+	dj.lock.Lock()
+	defer dj.lock.Unlock()
+	track, err := dj.getTrack(id)
+	if err != nil {
+		return err
+	}
+	//track.Decorated.Volume = 20 * math.Log10(volumeDeltaDb)
+	// On this one, we want to increase **perceived** sound level.
+	// We could either choose to increase the Sound power or the sound pressure
+	// Human perception is more sensitive to sound pressure, so we're going with that
+	// https://en.wikipedia.org/wiki/Decibel
+	// Now, sound pressure delta = 10^(volumeDeltaDb/20)
+	// Base of the volume filter is 10, so we need to divide by 20
+	track.Decorated.Volume += volumeDeltaDb / 20
+
+	// By convention, we consider that a track is silent if its volume is below -60dB
+	track.Decorated.Silent = track.Decorated.Volume*20 <= -60
+
 	return nil
 }
 

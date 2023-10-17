@@ -11,9 +11,9 @@ import (
 
 func TestDiscJockey_AddNoDup(t *testing.T) {
 	dj := NewDiscJockey()
-	err := dj.Add("test", nil, beep.Format{}, nil)
+	err := dj.Add("test", nil, beep.Format{}, AddTrackOpt{})
 	assert.NoError(t, err)
-	err = dj.Add("test", nil, beep.Format{}, nil)
+	err = dj.Add("test", nil, beep.Format{}, AddTrackOpt{})
 	assert.Error(t, err)
 }
 
@@ -24,9 +24,9 @@ func TestDiscJockey_EndCallback(t *testing.T) {
 	quack := test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack)
 	quackFormat := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	done := make(chan bool, 1)
-	err := dj.Add("quack", quack, quackFormat, func() {
+	err := dj.Add("quack", quack, quackFormat, AddTrackOpt{OnEnd: func() {
 		done <- true
-	})
+	}})
 	assert.NoError(t, err)
 	// Pull 5 seconds worth of samples. This is more than enough to trigger the callback
 	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
@@ -44,9 +44,9 @@ func TestDiscJockey_SampleRateZero(t *testing.T) {
 	format := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
 	quack := test_utils.OpenMp3Resource(t, test_utils.Mp3_Quack)
 	done := make(chan bool, 1)
-	err := dj.Add("quack", quack, beep.Format{}, func() {
+	err := dj.Add("quack", quack, beep.Format{}, AddTrackOpt{OnEnd: func() {
 		done <- true
-	})
+	}})
 	assert.NoError(t, err)
 	// Pull 5 seconds worth of samples. This is more than enough to trigger the callback
 	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
@@ -61,7 +61,7 @@ func TestDiscJockey_Remove(t *testing.T) {
 	dj := NewDiscJockey()
 	mockStream := MockStreamer{}
 	mockStream.On("Close").Return(nil)
-	err := dj.Add("test", &mockStream, beep.Format{}, nil)
+	err := dj.Add("test", &mockStream, beep.Format{}, AddTrackOpt{})
 	assert.NoError(t, err)
 	err = dj.Remove("test")
 	assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestDiscJockey_SetPaused(t *testing.T) {
 	dj := NewDiscJockey()
 	mockStream := MockStreamer{}
 	mockStream.On("Close").Return(nil)
-	err := dj.Add("test", &mockStream, beep.Format{}, nil)
+	err := dj.Add("test", &mockStream, beep.Format{}, AddTrackOpt{})
 	assert.NoError(t, err)
 	err = dj.SetPaused("test", true)
 	assert.NoError(t, err)
@@ -89,6 +89,26 @@ func TestDiscJockey_SetPaused(t *testing.T) {
 	mockStream.AssertExpectations(t)
 	err = dj.SetPaused("test", true)
 	assert.Error(t, err)
+}
+
+func TestDiscJockey_ChangeVolume(t *testing.T) {
+	dj := NewDiscJockey()
+	mockStream := MockStreamer{}
+	err := dj.Add("test", &mockStream, beep.Format{}, AddTrackOpt{})
+	assert.NoError(t, err)
+	track, err := dj.getTrack("test")
+	err = dj.ChangeVolume("test", -30)
+	assert.NoError(t, err)
+	assert.Equal(t, -30.0, 20*track.Decorated.Volume)
+	assert.Equal(t, false, track.Decorated.Silent)
+	err = dj.ChangeVolume("test", 0)
+	assert.Equal(t, -30.0, 20*track.Decorated.Volume)
+	assert.Equal(t, false, track.Decorated.Silent)
+	err = dj.ChangeVolume("test", -30)
+	assert.Equal(t, -60.0, 20*track.Decorated.Volume)
+	assert.Equal(t, true, track.Decorated.Silent)
+	assert.NoError(t, err)
+
 }
 
 type MockStreamer struct {

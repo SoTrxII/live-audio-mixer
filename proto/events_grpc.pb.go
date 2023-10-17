@@ -4,7 +4,7 @@
 // - protoc             v4.24.2
 // source: proto/events.proto
 
-package events
+package jukebox_syncer
 
 import (
 	context "context"

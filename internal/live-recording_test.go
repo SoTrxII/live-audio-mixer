@@ -27,7 +27,7 @@ func TestLive_MixedTracks(t *testing.T) {
 
 	// And write them to a file
 	format := beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
-	err := dj.Add("chicken", chicken, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
+	err := dj.Add("chicken", chicken, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, disc_jockey.AddTrackOpt{})
 	assert.NoError(t, err)
 	//speaker.Play(dj)
 	done := make(chan os.Signal, 1)
@@ -37,9 +37,9 @@ func TestLive_MixedTracks(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			err = dj.Remove("chicken")
 			assert.NoError(t, err)
-			err = dj.Add("bg", bg, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
+			err = dj.Add("bg", bg, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, disc_jockey.AddTrackOpt{})
 			assert.NoError(t, err)
-			err = dj.Add("quack", quack, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, nil)
+			err = dj.Add("quack", quack, beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}, disc_jockey.AddTrackOpt{})
 			assert.NoError(t, err)
 
 		}
