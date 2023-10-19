@@ -53,12 +53,6 @@ func setup(t *testing.T) []getStreamCase {
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
 			mime:       "audio/wav",
 		},
-		{
-			link:       "https://freewavesamples.com/files/Ensoniq-ZR-76-08-Dope-92.wav",
-			compareFor: 10 * time.Second,
-			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
-			mime:       "audio/wav",
-		},
 	}
 }
 func TestGetStream(t *testing.T) {
