@@ -22,7 +22,6 @@ func NewDiscJockey() *DiscJockey {
 // Add a new track to the mixtable, the onEnd callback is called when the track is finished
 // A new track is played automatically
 func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format, opt AddTrackOpt) error {
-
 	// abort if the track already exists
 	if _, err := dj.getTrack(id); err == nil {
 		return fmt.Errorf("track with id %s already exists", id)
@@ -38,14 +37,18 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 
 	// Every time a song stops playing, it is removed from the track list
 	afterPlayCb := beep.Callback(func() {
-		err := dj.remove(id)
-		if err != nil {
-			slog.Debug(fmt.Sprintf("[Disc Jockey] :: Error while removing track %s  in callback. Song has been stopped beforehand : %v", id, err))
-		}
-		if opt.OnEnd != nil {
-			opt.OnEnd()
-		}
+		go func() {
+			err := dj.Remove(id)
+			if err != nil {
+				slog.Debug(fmt.Sprintf("[Disc Jockey] :: Error while removing track %s  in callback. Song has been stopped beforehand : %v", id, err))
+			}
+
+			if opt.OnEnd != nil {
+				opt.OnEnd()
+			}
+		}()
 	})
+
 	track := &Track{
 		Origin: s,
 		Decorated: &effects.Volume{
@@ -61,8 +64,8 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 		},
 	}
 	// We're going with no lock on this one because of the loop
-	//dj.lock.Lock()
-	//defer dj.lock.Unlock()
+	dj.lock.Lock()
+	defer dj.lock.Unlock()
 	dj.trackList[id] = track
 	dj.mixer.Add(track.Decorated)
 	return nil

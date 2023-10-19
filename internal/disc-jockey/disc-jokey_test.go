@@ -32,7 +32,7 @@ func TestDiscJockey_EndCallback(t *testing.T) {
 	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
 	select {
 	case <-done:
-	default:
+	case <-time.After(1 * time.Second):
 		assert.Fail(t, "callback not called")
 	}
 }
@@ -52,7 +52,7 @@ func TestDiscJockey_SampleRateZero(t *testing.T) {
 	test_utils.GetSamples(t, dj, format.SampleRate.N(time.Second*5))
 	select {
 	case <-done:
-	default:
+	case <-time.After(1 * time.Second):
 		assert.Fail(t, "callback not called")
 	}
 }
