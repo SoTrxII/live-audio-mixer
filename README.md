@@ -50,6 +50,7 @@ There are currently four types of event:
 - STOP: Removes an audio source from the Mixer
 - PAUSE: Pauses an audio source that is currently playing in the mixer
 - RESUME: Resumes an audio source that is currently paused in the mixer
+- VOLUME : Changes the volume of an audio source in the mixer (in dB)
 
 ### Example
 

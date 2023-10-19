@@ -43,7 +43,7 @@ func (r *Recorder) Update(evt *pb.Event) {
 	r.state[evt.AssetUrl] = evt
 	switch evt.Type {
 	case pb.EventType_PLAY:
-		err = r.addTrack(evt.AssetUrl, evt.VolumeDeltaDb)
+		err = r.addTrack(evt.AssetUrl, evt.VolumeDeltaDb, 0)
 	case pb.EventType_STOP:
 		err = r.removeTrack(evt.AssetUrl)
 	case pb.EventType_PAUSE:
@@ -66,7 +66,7 @@ func (r *Recorder) Update(evt *pb.Event) {
 func (r *Recorder) loop(url string) error {
 	lastEvt := r.state[url]
 	if lastEvt.Loop {
-		err := r.addTrack(url, lastEvt.VolumeDeltaDb)
+		err := r.addTrack(url, lastEvt.VolumeDeltaDb, 0)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (r *Recorder) loop(url string) error {
 }
 
 // Add a track to the mixtable from its URL
-func (r *Recorder) addTrack(url string, initVolume float64) error {
+func (r *Recorder) addTrack(url string, initVolume float64, offsetSecs int) error {
 	stream, format, err := r.src.GetStream(url)
 	if err != nil {
 		return err
@@ -112,4 +112,12 @@ func (r *Recorder) resumeTrack(url string) error {
 
 func (r *Recorder) changeVolume(url string, volumeDeltaDb float64) error {
 	return r.dj.ChangeVolume(url, volumeDeltaDb)
+}
+
+func (r *Recorder) seekTrack(url string, initVolume float64, offsetSecs int) error {
+	err := r.removeTrack(url)
+	if err != nil {
+		return err
+	}
+	return r.addTrack(url, initVolume, offsetSecs)
 }

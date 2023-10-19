@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/flac"
-	"github.com/faiface/beep/mp3"
 	"github.com/gabriel-vasile/mimetype"
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -19,7 +19,7 @@ func NewHandler() *Handler {
 }
 
 // GetStream takes an audio URL and returns a beep stream, format and error
-func (h *Handler) GetStream(audioUrl string) (beep.StreamSeekCloser, beep.Format, error) {
+func (h *Handler) GetStream(audioUrl string, offsetSecs time.Duration) (beep.StreamSeekCloser, beep.Format, error) {
 	// Fetch the audio file from the URL
 	resp, err := http.Get(audioUrl)
 	if err != nil {
@@ -37,13 +37,20 @@ func (h *Handler) GetStream(audioUrl string) (beep.StreamSeekCloser, beep.Format
 		return nil, beep.Format{}, fmt.Errorf("invalid content type: '%s' for audio with url %s. Aborting playback", contentType, audioUrl)
 	}
 
-	if contentType == "audio/mpeg" {
+	/*if contentType == "audio/mpeg" {
 		decoder, format, err = mp3.Decode(resp.Body)
+		if err == nil {
+			err = decoder.Seek(format.SampleRate.N(offsetSecs))
+			if err == nil {
+				return decoder, format, nil
+			}
+		}
+
 		if err == nil {
 			return decoder, format, nil
 		}
 		slog.Warn(fmt.Sprintf("while decoding mp3: %s. Using default decoder", err.Error()))
-	}
+	}*/
 
 	sc := NewStreamConverter(audioUrl)
 	format = beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}

@@ -1,6 +1,7 @@
 package stream_handler
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os/exec"
@@ -12,17 +13,10 @@ type StreamConverter struct {
 	stderr io.ReadCloser
 }
 
-// NonSeekingReader Custom reader that does not implement the Seek method
-// This is required because the flac decoder will try to check for seeking capabilities
-// but altough stdout implements it, it will not work at we're working with live data
-type NonSeekingReader struct {
-	io.ReadCloser
-}
-
 func NewStreamConverter(url string) *StreamConverter {
 	return &StreamConverter{
 		// Flac
-		cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-ac", "2", "-ar", "48000", "-acodec", "flac", "-f", "flac", "-"),
+		cmd: exec.Command("ffmpeg", "-ss", "0", "-i", url, "-vn", "-ac", "2", "-ar", "48000", "-acodec", "flac", "-f", "flac", "-"),
 		// Wav (Non functional, reason unknown)
 		//cmd: exec.Command("ffmpeg", "-i", url, "-vn", "-acodec", "pcm_s16le", "-ar", "48000", "-ac", "2", "-f", "wav", "-frames:v", "48000", "-"),
 		// Mp3 (Non functional, requires seeking)
@@ -33,7 +27,7 @@ func NewStreamConverter(url string) *StreamConverter {
 
 }
 
-func (s *StreamConverter) GetOutput() (pipe *NonSeekingReader, err error) {
+func (s *StreamConverter) GetOutput() (pipe *bufio.Reader, err error) {
 	stdout, err := s.cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println("Error capturing FFmpeg output:", err)
@@ -45,7 +39,8 @@ func (s *StreamConverter) GetOutput() (pipe *NonSeekingReader, err error) {
 		fmt.Println("Error capturing FFmpeg output:", err)
 		return
 	}
-	return &NonSeekingReader{stdout}, nil
+
+	return bufio.NewReader(stdout), nil
 }
 
 // Starts encoding asynchronously and sends any errors to the error channel

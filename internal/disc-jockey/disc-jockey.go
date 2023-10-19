@@ -77,6 +77,7 @@ func (dj *DiscJockey) Remove(id string) error {
 	defer dj.lock.Unlock()
 	return dj.remove(id)
 }
+
 func (dj *DiscJockey) remove(id string) error {
 	track, err := dj.getTrack(id)
 	if err != nil {

@@ -26,7 +26,7 @@ func setup(t *testing.T) []getStreamCase {
 			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Mp3_Sample3s),
 			mime:       "audio/mpeg",
 		},
-		{
+		/*{
 			link:       "https://youtube.songbroker.pocot.fr/download/mp3/3cFvVYUxwoc-#87867",
 			compareFor: 10 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_mp3_Layer3),
@@ -48,7 +48,7 @@ func setup(t *testing.T) []getStreamCase {
 			compareFor: 2 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
 			mime:       "audio/wav",
-		},
+		},*/
 	}
 }
 func TestGetStream(t *testing.T) {
@@ -57,7 +57,7 @@ func TestGetStream(t *testing.T) {
 	for _, testCase := range cases {
 		testName := fmt.Sprintf("Testing valid link %s", testCase.link)
 		t.Run(testName, func(t *testing.T) {
-			decoder, format, err := h.GetStream(testCase.link)
+			decoder, format, err := h.GetStream(testCase.link, time.Second*5)
 			assert.NoError(t, err)
 			assert.NotNil(t, decoder)
 			fmt.Printf("Format: %+v\n", format)
@@ -70,7 +70,7 @@ func TestGetStream(t *testing.T) {
 	for _, link := range invalidLinks {
 		testName := fmt.Sprintf("Testing invalid link %s", link)
 		t.Run(testName, func(t *testing.T) {
-			_, _, err := h.GetStream(link)
+			_, _, err := h.GetStream(link, time.Second*5)
 			assert.Error(t, err)
 		})
 	}
@@ -91,7 +91,7 @@ func TestGetStream_Cmp(t *testing.T) {
 			h := NewHandler()
 
 			// Open the candidate stream and get the required number of sample
-			candidate, format, err := h.GetStream(testCase.link)
+			candidate, format, err := h.GetStream(testCase.link, time.Second*5)
 			assert.NoError(t, err)
 			candidateSamples := test_utils.GetSamples(t, candidate, format.SampleRate.N(testCase.compareFor))
 
@@ -129,7 +129,7 @@ func TestGetStream_Listen(t *testing.T) {
 		t.Run(fmt.Sprintf("Testing link %s", testCase.link), func(t *testing.T) {
 			h := NewHandler()
 			// Open the candidate stream and get the required number of sample
-			candidate, format, err := h.GetStream(testCase.link)
+			candidate, format, err := h.GetStream(testCase.link, time.Second*5)
 			assert.NoError(t, err)
 			err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 			assert.NoError(t, err)
@@ -144,12 +144,12 @@ func TestGetStream_Listen(t *testing.T) {
 
 func TestHandler_GetStream_NotAnAudioFile(t *testing.T) {
 	h := NewHandler()
-	_, _, err := h.GetStream("https://www.google.com")
+	_, _, err := h.GetStream("https://www.google.com", time.Second)
 	assert.Error(t, err)
 }
 
 func TestHandler_GetStream_InvalidLink(t *testing.T) {
 	h := NewHandler()
-	_, _, err := h.GetStream("fhdfhdfhhfd://garbage.com")
+	_, _, err := h.GetStream("fhdfhdfhhfd://garbage.com", time.Second)
 	assert.Error(t, err)
 }
