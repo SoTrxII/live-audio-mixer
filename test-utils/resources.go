@@ -34,6 +34,7 @@ const (
 	Wav_Rec_StartStop            = "./recorder/start-stop.wav"
 	Wav_Rec_MultiTracks          = "./recorder/multi-tracks.wav"
 	Wav_Rec_PauseResume          = "./recorder/pause-resume.wav"
+	Wav_Rec_Volume               = "./recorder/volume.wav"
 	Wav_Rec_Seek                 = "./recorder/seek.wav"
 	Wav_Mix1                     = "./mixed/mix1.wav"
 )

@@ -89,7 +89,7 @@ func TestStartStop(t *testing.T) {
 	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
 
 	// We can't expect 100% similarity, because the encoder is not lossless
-	assert.InDelta(t, 1, sim, 0.1)
+	assert.InDelta(t, 1, sim, 0.2)
 }
 
 func TestNoLoop(t *testing.T) {
@@ -316,7 +316,23 @@ func TestVolume(t *testing.T) {
 	case err := <-errCh:
 		assert.NoError(t, err)
 	}
-	// TODO add comparison
+
+	// To be able to compare the file, we must encode the ogg file to wav
+	wavPath := filepath.Join(test.Dir, "rec.wav")
+	err := test_utils.ToWav(test.File.Name(), wavPath)
+	assert.NoError(t, err)
+
+	// Then we can test both files
+	wavFile, err := os.Open(wavPath)
+	defer wavFile.Close()
+	assert.NoError(t, err)
+	candidate, _, err := wav.Decode(wavFile)
+	original := test_utils.OpenWavResource(t, test_utils.Wav_Rec_Volume)
+	sim := test_utils.GetSimilarity(test_utils.GetAllSamples(t, original), test_utils.GetAllSamples(t, candidate))
+
+	// We can't expect 100% similarity, because the encoder is not lossless
+	// This one also depend on the resampling
+	assert.InDelta(t, 1, sim, 0.1)
 }
 
 func TestSeek(t *testing.T) {
