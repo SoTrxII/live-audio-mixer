@@ -19,7 +19,7 @@ func NewHandler() *Handler {
 }
 
 // GetStream takes an audio URL and returns a beep stream, format and error
-func (h *Handler) GetStream(audioUrl string, offsetSecs time.Duration) (beep.StreamSeekCloser, beep.Format, error) {
+func (h *Handler) GetStream(audioUrl string, offset time.Duration) (beep.StreamSeekCloser, beep.Format, error) {
 	// Fetch the audio file from the URL
 	resp, err := http.Get(audioUrl)
 	if err != nil {
@@ -29,31 +29,12 @@ func (h *Handler) GetStream(audioUrl string, offsetSecs time.Duration) (beep.Str
 
 	// Note, we don't need to close the stream directly, the Close method of the decoder will do it for us
 	// Determine the audio format based on the response content type
-	var format beep.Format
-	var decoder beep.StreamSeekCloser
 	contentType := h.getMimeType(resp)
 	if !strings.HasPrefix(contentType, "audio/") {
 		slog.Warn(fmt.Sprintf("[Stream handler] :: Invalid content type: '%s' for audio with url %s. Aborting playback", contentType, audioUrl))
 		return nil, beep.Format{}, fmt.Errorf("invalid content type: '%s' for audio with url %s. Aborting playback", contentType, audioUrl)
 	}
-
-	/*if contentType == "audio/mpeg" {
-		decoder, format, err = mp3.Decode(resp.Body)
-		if err == nil {
-			err = decoder.Seek(format.SampleRate.N(offsetSecs))
-			if err == nil {
-				return decoder, format, nil
-			}
-		}
-
-		if err == nil {
-			return decoder, format, nil
-		}
-		slog.Warn(fmt.Sprintf("while decoding mp3: %s. Using default decoder", err.Error()))
-	}*/
-
-	sc := NewStreamConverter(audioUrl)
-	format = beep.Format{SampleRate: 48000, NumChannels: 2, Precision: 2}
+	sc := NewStreamConverter(audioUrl, int(offset.Seconds()))
 	pipe, err := sc.GetOutput()
 	if err != nil {
 		return nil, beep.Format{}, err

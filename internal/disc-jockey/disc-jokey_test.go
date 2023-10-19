@@ -108,7 +108,6 @@ func TestDiscJockey_ChangeVolume(t *testing.T) {
 	assert.Equal(t, -60.0, 20*track.Decorated.Volume)
 	assert.Equal(t, true, track.Decorated.Silent)
 	assert.NoError(t, err)
-
 }
 
 type MockStreamer struct {

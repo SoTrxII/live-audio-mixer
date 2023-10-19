@@ -23,9 +23,9 @@ const (
 	Mp3_BgMusic         Resource = "Sappheiros_Falling.mp3"
 	Mp3_Quack                    = "quack.mp3"
 	Mp3_Chicken                  = "chicken_song.mp3"
-	Mp3_Castle                   = "barovian-castle.mp3"
 	Flac_mp3_Layer3              = "sample-mp3-layer3.flac"
-	Mp3_Sample3s                 = "sample-3s.mp3"
+	Flac_Castle                  = "barovian-castle.flac"
+	Flac_Sample3s                = "sample-3s.flac"
 	Flac_SampleOpus              = "sample-opus.flac"
 	Flac_BabyElephant            = "baby-elephant-stereo.flac"
 	Flac_Ensoniq                 = "ensoniq.flac"
@@ -34,6 +34,7 @@ const (
 	Wav_Rec_StartStop            = "./recorder/start-stop.wav"
 	Wav_Rec_MultiTracks          = "./recorder/multi-tracks.wav"
 	Wav_Rec_PauseResume          = "./recorder/pause-resume.wav"
+	Wav_Rec_Seek                 = "./recorder/seek.wav"
 	Wav_Mix1                     = "./mixed/mix1.wav"
 )
 const (

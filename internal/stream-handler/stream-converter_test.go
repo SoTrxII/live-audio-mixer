@@ -22,7 +22,63 @@ var testCases = []string{
 func TestStreamConverter_StartNoError(t *testing.T) {
 	for _, testLink := range testCases {
 		t.Run(fmt.Sprintf("Testing valid link %s", testLink), func(t *testing.T) {
-			convert := NewStreamConverter(testLink)
+			convert := NewStreamConverter(testLink, 0)
+			stdout, err := convert.GetOutput()
+			assert.NoError(t, err)
+			errCh := make(chan error)
+			go convert.Start(errCh)
+			// Create a buffer to read the output
+			buffer := make([]byte, 10*1024*1024) // Adjust the buffer size as needed
+			for {
+				_, err := stdout.Read(buffer)
+				if err == io.EOF {
+					break // End of output
+				}
+				if err != nil {
+					fmt.Println("Error reading stdout:", err)
+					break
+				}
+			}
+			res := <-errCh
+			assert.NoError(t, res)
+		})
+	}
+}
+
+// A negative offset will have no effect
+func TestStreamConverter_StartNoError_InvalidOffsetNeg(t *testing.T) {
+	for _, testLink := range testCases {
+		t.Run(fmt.Sprintf("Testing valid link %s", testLink), func(t *testing.T) {
+			convert := NewStreamConverter(testLink, -855)
+			stdout, err := convert.GetOutput()
+			assert.NoError(t, err)
+			errCh := make(chan error)
+			go convert.Start(errCh)
+			// Create a buffer to read the output
+			buffer := make([]byte, 10*1024*1024) // Adjust the buffer size as needed
+			for {
+				_, err := stdout.Read(buffer)
+				if err == io.EOF {
+					break // End of output
+				}
+				if err != nil {
+					fmt.Println("Error reading stdout:", err)
+					break
+				}
+			}
+			res := <-errCh
+			assert.NoError(t, res)
+		})
+	}
+}
+
+// An offset greater than the length of the stream will have unexpected results
+// The audio will most likely be silent, but as we can't really know the length of the stream beforehand, we can't really check for this
+// The only thing to etst is that in the off-chance that this case happen, this doesn't crash the stream
+func TestStreamConverter_StartNoError_InvalidOffsetTooLong(t *testing.T) {
+	for _, testLink := range testCases {
+		t.Run(fmt.Sprintf("Testing valid link %s", testLink), func(t *testing.T) {
+			convert := NewStreamConverter(testLink, 3600)
 			stdout, err := convert.GetOutput()
 			assert.NoError(t, err)
 			errCh := make(chan error)
@@ -46,7 +102,7 @@ func TestStreamConverter_StartNoError(t *testing.T) {
 }
 
 func TestStreamConverter_StartError(t *testing.T) {
-	convert := NewStreamConverter("http://garbage.com")
+	convert := NewStreamConverter("http://garbage.com", 0)
 	stdout, err := convert.GetOutput()
 	assert.NoError(t, err)
 	errCh := make(chan error)
@@ -75,7 +131,7 @@ func TestStreamConverter_Listen(t *testing.T) {
 	}
 	for _, testLink := range testCases {
 		t.Run(fmt.Sprintf("Testing valid link %s", testLink), func(t *testing.T) {
-			convert := NewStreamConverter(testLink)
+			convert := NewStreamConverter(testLink, 3)
 			pipe, err := convert.GetOutput()
 			assert.NoError(t, err)
 			errCh := make(chan error)
@@ -92,14 +148,13 @@ func TestStreamConverter_Listen(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 // Ensures the process is killed from the outbound stream is closed
 func TestStreamConverter_Release(t *testing.T) {
 	for _, testLink := range testCases {
 		t.Run(fmt.Sprintf("Testing valid link %s", testLink), func(t *testing.T) {
-			convert := NewStreamConverter(testLink)
+			convert := NewStreamConverter(testLink, 0)
 			pipe, err := convert.GetOutput()
 			assert.NoError(t, err)
 			errCh := make(chan error)

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"sync"
+	"time"
 )
 
 func NewRecorder(src StreamingSrc, to EncodeFn) *Recorder {
@@ -52,6 +53,8 @@ func (r *Recorder) Update(evt *pb.Event) {
 		err = r.resumeTrack(evt.AssetUrl)
 	case pb.EventType_VOLUME:
 		err = r.changeVolume(evt.AssetUrl, evt.VolumeDeltaDb)
+	case pb.EventType_SEEK:
+		err = r.seekTrack(evt.AssetUrl, evt.VolumeDeltaDb, time.Duration(evt.SeekPositionSec)*time.Second)
 	// This type of event only toggles the loop flag currently, there is no processing required
 	case pb.EventType_OTHER:
 		slog.Info(fmt.Sprintf("[Recorder] :: Received OTHER event %v", evt))
@@ -75,8 +78,8 @@ func (r *Recorder) loop(url string) error {
 }
 
 // Add a track to the mixtable from its URL
-func (r *Recorder) addTrack(url string, initVolume float64, offsetSecs int) error {
-	stream, format, err := r.src.GetStream(url)
+func (r *Recorder) addTrack(url string, initVolume float64, offset time.Duration) error {
+	stream, format, err := r.src.GetStream(url, offset)
 	if err != nil {
 		return err
 	}
@@ -114,10 +117,10 @@ func (r *Recorder) changeVolume(url string, volumeDeltaDb float64) error {
 	return r.dj.ChangeVolume(url, volumeDeltaDb)
 }
 
-func (r *Recorder) seekTrack(url string, initVolume float64, offsetSecs int) error {
+func (r *Recorder) seekTrack(url string, initVolume float64, offset time.Duration) error {
 	err := r.removeTrack(url)
 	if err != nil {
 		return err
 	}
-	return r.addTrack(url, initVolume, offsetSecs)
+	return r.addTrack(url, initVolume, offset)
 }

@@ -16,17 +16,20 @@ func setup(t *testing.T) []getStreamCase {
 	return []getStreamCase{
 		{
 			link:       "https://s3.amazonaws.com/cdn.roll20.net/ttaudio/148_Barovian_Castle.mp3",
+			offset:     5 * time.Second,
 			compareFor: 5 * time.Second,
-			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Mp3_Castle),
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Castle),
 			mime:       "audio/mpeg",
 		},
 		{
-			link:       "https://download.samplelib.com/mp3/sample-3s.mp3",
+			link: "https://download.samplelib.com/mp3/sample-3s.mp3",
+			// Negative offset should have no effect
+			offset:     -3 * time.Second,
 			compareFor: 3 * time.Second,
-			compareTo:  test_utils.OpenMp3Resource(t, test_utils.Mp3_Sample3s),
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Sample3s),
 			mime:       "audio/mpeg",
 		},
-		/*{
+		{
 			link:       "https://youtube.songbroker.pocot.fr/download/mp3/3cFvVYUxwoc-#87867",
 			compareFor: 10 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_mp3_Layer3),
@@ -40,6 +43,7 @@ func setup(t *testing.T) []getStreamCase {
 		},
 		{
 			link:       "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav",
+			offset:     10 * time.Second,
 			compareFor: 20 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_BabyElephant),
 			mime:       "audio/x-wav",
@@ -48,7 +52,13 @@ func setup(t *testing.T) []getStreamCase {
 			compareFor: 2 * time.Second,
 			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
 			mime:       "audio/wav",
-		},*/
+		},
+		{
+			link:       "https://freewavesamples.com/files/Ensoniq-ZR-76-08-Dope-92.wav",
+			compareFor: 10 * time.Second,
+			compareTo:  test_utils.OpenFlacResource(t, test_utils.Flac_Ensoniq),
+			mime:       "audio/wav",
+		},
 	}
 }
 func TestGetStream(t *testing.T) {
@@ -57,27 +67,33 @@ func TestGetStream(t *testing.T) {
 	for _, testCase := range cases {
 		testName := fmt.Sprintf("Testing valid link %s", testCase.link)
 		t.Run(testName, func(t *testing.T) {
-			decoder, format, err := h.GetStream(testCase.link, time.Second*5)
+			decoder, format, err := h.GetStream(testCase.link, 0)
 			assert.NoError(t, err)
 			assert.NotNil(t, decoder)
 			fmt.Printf("Format: %+v\n", format)
 		})
 	}
 
-	// Cloudlfare protected link
-	invalidLinks := []string{"https://file-examples.com/wp-content/storage/2017/11/file_example_OOG_1MG.ogg"}
+	invalidLinkCases := []getStreamCase{
+		// Cloudlfare protected link
+		{
+			link: "https://file-examples.com/wp-content/storage/2017/11/file_example_OOG_1MG.ogg",
+		},
+	}
 
-	for _, link := range invalidLinks {
-		testName := fmt.Sprintf("Testing invalid link %s", link)
+	for _, testCase := range invalidLinkCases {
+		testName := fmt.Sprintf("Testing invalid link %s", testCase.link)
 		t.Run(testName, func(t *testing.T) {
-			_, _, err := h.GetStream(link, time.Second*5)
+			_, _, err := h.GetStream(testCase.link, 0)
 			assert.Error(t, err)
 		})
 	}
 }
 
 type getStreamCase struct {
-	link       string
+	link string
+	// The offset is used to skip the first N seconds of the stream
+	offset     time.Duration
 	compareFor time.Duration
 	compareTo  beep.StreamSeekCloser
 	mime       string
@@ -89,13 +105,13 @@ func TestGetStream_Cmp(t *testing.T) {
 	for _, testCase := range cases {
 		t.Run(fmt.Sprintf("Testing link %s", testCase.link), func(t *testing.T) {
 			h := NewHandler()
-
 			// Open the candidate stream and get the required number of sample
-			candidate, format, err := h.GetStream(testCase.link, time.Second*5)
+			candidate, format, err := h.GetStream(testCase.link, testCase.offset)
 			assert.NoError(t, err)
 			candidateSamples := test_utils.GetSamples(t, candidate, format.SampleRate.N(testCase.compareFor))
 
-			// Same thing for the original we're comparing it to
+			// Same thing for the original we're comparing it to, ignoring the offset sample
+			_ = test_utils.GetSamples(t, testCase.compareTo, format.SampleRate.N(testCase.offset))
 			originalSamples := test_utils.GetSamples(t, testCase.compareTo, format.SampleRate.N(testCase.compareFor))
 
 			// Compare. Each case should be 1.0 but there could be small variations
@@ -129,7 +145,7 @@ func TestGetStream_Listen(t *testing.T) {
 		t.Run(fmt.Sprintf("Testing link %s", testCase.link), func(t *testing.T) {
 			h := NewHandler()
 			// Open the candidate stream and get the required number of sample
-			candidate, format, err := h.GetStream(testCase.link, time.Second*5)
+			candidate, format, err := h.GetStream(testCase.link, 10*time.Second)
 			assert.NoError(t, err)
 			err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 			assert.NoError(t, err)

@@ -7,6 +7,7 @@ import (
 	pb "live-audio-mixer/proto"
 	"os"
 	"sync"
+	"time"
 )
 
 type Recorder struct {
@@ -25,5 +26,5 @@ type Sink struct {
 }
 
 type StreamingSrc interface {
-	GetStream(string) (beep.StreamSeekCloser, beep.Format, error)
+	GetStream(string, time.Duration) (beep.StreamSeekCloser, beep.Format, error)
 }
