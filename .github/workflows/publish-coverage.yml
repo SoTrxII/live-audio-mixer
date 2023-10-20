@@ -9,17 +9,23 @@ on:
       - 'resources/**'
 jobs:
   func-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: '^1.21.0'
+
+      # The apt version of ffmpeg is quite old (4.42),
+        # so we need to install a newer version
+      # - uses: FedericoCarboni/setup-ffmpeg@v2
+
       - name: Install dependencies
         run: |
+          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg6 -y
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev pulseaudio alsa-utils dbus-x11 ffmpeg
+          sudo apt-get install -y flac ffmpeg libasound2-dev pulseaudio alsa-utils dbus-x11
           pulseaudio -D
       - run: go mod tidy
       - name: Install Dapr CLI
