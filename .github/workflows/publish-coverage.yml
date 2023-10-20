@@ -17,7 +17,7 @@ jobs:
         with:
           go-version: '^1.21.0'
 
-      # The apt version of ffmpeg is quite old (4.42),
+        # The apt version of ffmpeg is quite old (4.42),
         # so we need to install a newer version
       # - uses: FedericoCarboni/setup-ffmpeg@v2
 
