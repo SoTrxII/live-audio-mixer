@@ -85,7 +85,7 @@ func (r *Recorder) addTrack(url string, initVolume float64, offset time.Duration
 	}
 	err = r.dj.Add(url, stream, format, disc_jockey.AddTrackOpt{
 		InitVolumeDb: initVolume,
-		OnEnd: func() {
+		OnEnd: func(url string) {
 			err := r.loop(url)
 			if err != nil {
 				slog.Error(fmt.Sprintf("[Recorder] :: Error while looping track %s : %v", url, err))

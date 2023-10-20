@@ -22,6 +22,8 @@ func NewDiscJockey() *DiscJockey {
 // Add a new track to the mixtable, the onEnd callback is called when the track is finished
 // A new track is played automatically
 func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format, opt AddTrackOpt) error {
+	dj.lock.Lock()
+	defer dj.lock.Unlock()
 	// abort if the track already exists
 	if _, err := dj.getTrack(id); err == nil {
 		return fmt.Errorf("track with id %s already exists", id)
@@ -37,16 +39,16 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 
 	// Every time a song stops playing, it is removed from the track list
 	afterPlayCb := beep.Callback(func() {
-		go func() {
+		go func(id string) {
 			err := dj.Remove(id)
 			if err != nil {
-				slog.Debug(fmt.Sprintf("[Disc Jockey] :: Error while removing track %s  in callback. Song has been stopped beforehand : %v", id, err))
+				slog.Info(fmt.Sprintf("[Disc Jockey] :: Error while removing track %s  in callback. Song has been stopped beforehand : %v", id, err))
 			}
 
 			if opt.OnEnd != nil {
-				opt.OnEnd()
+				opt.OnEnd(id)
 			}
-		}()
+		}(id)
 	})
 
 	track := &Track{
@@ -64,28 +66,25 @@ func (dj *DiscJockey) Add(id string, s beep.StreamSeekCloser, format beep.Format
 		},
 	}
 	// We're going with no lock on this one because of the loop
-	dj.lock.Lock()
-	defer dj.lock.Unlock()
+
 	dj.trackList[id] = track
 	dj.mixer.Add(track.Decorated)
 	return nil
 }
 
-// Remove a track from the mixtable
 func (dj *DiscJockey) Remove(id string) error {
 	dj.lock.Lock()
 	defer dj.lock.Unlock()
-	return dj.remove(id)
-}
-
-func (dj *DiscJockey) remove(id string) error {
 	track, err := dj.getTrack(id)
 	if err != nil {
 		return err
 	}
 	err = track.Origin.Close()
 	if err != nil {
-		return fmt.Errorf("while closing track %s: %w", id, err)
+		// This is not a fatal error, we can still remove the track from the list
+		// this can happen if during the time the callback was executing, the source
+		// autoclosed
+		slog.Warn(fmt.Sprintf("while closing track %s: %s", id, err.Error()))
 	}
 	delete(dj.trackList, id)
 	return nil
@@ -140,8 +139,8 @@ func (dj *DiscJockey) ChangeVolume(id string, volumeDeltaDb float64) error {
 }
 
 func (dj *DiscJockey) getTrack(id string) (*Track, error) {
-	track := dj.trackList[id]
-	if track == nil {
+	track, ok := dj.trackList[id]
+	if !ok {
 		return nil, fmt.Errorf(`track with id "%s" not found`, id)
 	}
 	return track, nil

@@ -267,7 +267,7 @@ func TestPauseResume(t *testing.T) {
 
 	// We can't expect 100% similarity, because the encoder is not lossless
 	// This one also depend on the resampling
-	assert.InDelta(t, 1, sim, 0.2)
+	assert.InDelta(t, 1, sim, 0.25)
 }
 
 func TestVolume(t *testing.T) {

@@ -24,5 +24,5 @@ type AddTrackOpt struct {
 	// The initial volume of the track in decibels
 	InitVolumeDb float64
 	// The callback to call when the track is finished
-	OnEnd func()
+	OnEnd func(string)
 }
