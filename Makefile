@@ -15,10 +15,10 @@ run:
 	go run cmd/server.go
 
 dapr_run:
-	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051  --resources-path ./dapr/components -- go run cmd/server.go
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50303  --resources-path ./dapr/components -- go run cmd/server.go
 
 dapr:
-	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50051 --dapr-grpc-port=50008  --resources-path ./dapr/components
+	dapr run --app-id=live-audio-mixer --dapr-http-max-request-size 16 --app-port 50303 --dapr-grpc-port=50051  --resources-path ./dapr/components
 
 # Dapr without waiting on the server, used for testing
 dapr_test:
