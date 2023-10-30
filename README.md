@@ -124,7 +124,7 @@ The mixer can be configured using environment variables. The following variables
 
 | Variable name | Description                                                                                                                                               | Required | Default value  |
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|----------|----------------|
-| `SERVER_PORT` | Size of the buffer used to stream audio                                                                                                                   |          | `4096`         |
+| `SERVER_PORT` | Port the app is listening to                                                                                                                              |          | `4096`         |
 | `DAPR_GRPC_PORT` | Port to connect to Dapr gRPC server. This variable is set automatically when running the app with dapr run.                                               | False    | `50001`        |
 | `DAPR_MAX_REQUEST_SIZE_MB` | Maximum size for a payload in a Dapr request. This must be at least 4/3 of the max record size. 100MB should be enough for at least 8 to 10h of recording | False    | `100`          |
 | `OBJECT_STORE_NAME` | Name of the Dapr component to use as an external object store                                                                                             | False    | `object-store` |
