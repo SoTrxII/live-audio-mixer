@@ -96,8 +96,6 @@ grpcurl -plaintext -d '{"recordId": "my-record-id", "evtId": "demo-audio", "type
 grpcurl -plaintext -d '{"recordId": "my-record-id"}' localhost:50001 liveaudiomixer.EventStream/Stop
 ```
 
-```grpc
-````
 ## Installation
 
 ### Docker
@@ -129,12 +127,3 @@ The mixer can be configured using environment variables. The following variables
 | `DAPR_MAX_REQUEST_SIZE_MB` | Maximum size for a payload in a Dapr request. This must be at least 4/3 of the max record size. 100MB should be enough for at least 8 to 10h of recording | False    | `100`          |
 | `OBJECT_STORE_NAME` | Name of the Dapr component to use as an external object store                                                                                             | False    | `object-store` |
 | `OBJECT_STORE_B64` | Whether to encode files to B64 before sending them to the object store component. This depend on which component is used. For S3, it's true               |          | `true`         |
-
-
-## Development
-
-### Run the app
-
-```bash
-make run
-```

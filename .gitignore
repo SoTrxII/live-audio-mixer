@@ -24,4 +24,7 @@ rec
 # IntelliJ IDEA
 .idea
 resources/storage
+.dapr/logs
+# Data directory for dapr
 .dapr
+!dapr/components
